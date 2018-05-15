@@ -59,6 +59,7 @@ public class ScreenCaptureFragment extends Fragment {
     public void startCapture() {
         if (observer.isAlive()) {
             if (hasPermissions()) {
+                reportState(ScreenCaptureState.PREPARE);
                 Intent captureIntent = mMediaProjectionManager.createScreenCaptureIntent();
                 startActivityForResult(captureIntent, REQUEST_MEDIA_PROJECTION);
             } else {
@@ -98,6 +99,7 @@ public class ScreenCaptureFragment extends Fragment {
                 startCapture();
             } else {
                 Log.e(TAG, "No Permission!");
+                reportState(ScreenCaptureState.FAILED);
             }
         }
     }
@@ -115,6 +117,7 @@ public class ScreenCaptureFragment extends Fragment {
                 }
             } else {
                 Log.e(TAG, "media projection is null");
+                reportState(ScreenCaptureState.FAILED);
             }
         }
     }
@@ -124,7 +127,9 @@ public class ScreenCaptureFragment extends Fragment {
             screenCaptureRecorder = new ScreenCaptureRecorder(mediaProjection, config);
             screenCaptureRecorder.addObserver(observer);
             screenCaptureRecorder.startCapture();
-            getActivity().moveTaskToBack(true);
+            reportState(ScreenCaptureState.START);
+            if (config.isAutoMoveTaskToBack())
+                getActivity().moveTaskToBack(true);
         } else {
             Log.e(TAG, "start recorder failed ,current activity is not alive state !!!");
             stopCapture();
@@ -148,12 +153,12 @@ public class ScreenCaptureFragment extends Fragment {
             return;
         }
         new AlertDialog.Builder(getActivity())//
-             .setMessage("Using your mic to record audio and your sd card to save video file")//
-             .setCancelable(false)//
-             .setPositiveButton(android.R.string.ok, (dialog, which) -> requestPermissions(permissions, PERMISSIONS_REQUEST_CODE))//
-             .setNegativeButton(android.R.string.cancel, null)//
-             .create()//
-             .show();
+                                              .setMessage("Using your mic to record audio and your sd card to save video file")//
+                                              .setCancelable(false)//
+                                              .setPositiveButton(android.R.string.ok, (dialog, which) -> requestPermissions(permissions, PERMISSIONS_REQUEST_CODE))//
+                                              .setNegativeButton(android.R.string.cancel, null)//
+                                              .create()//
+                                              .show();
     }
 
     private boolean hasPermissions() {
@@ -162,5 +167,12 @@ public class ScreenCaptureFragment extends Fragment {
         int granted = (config.hasAudio() ? pm.checkPermission(RECORD_AUDIO, packageName) : //
                 PackageManager.PERMISSION_GRANTED) | pm.checkPermission(WRITE_EXTERNAL_STORAGE, packageName);
         return granted == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void reportState(ScreenCaptureState state) {
+        ScreenCaptureCallback callback = config.getCaptureCallback();
+        if (callback != null) {
+            callback.captureState(state);
+        }
     }
 }

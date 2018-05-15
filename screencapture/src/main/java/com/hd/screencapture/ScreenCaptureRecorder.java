@@ -47,7 +47,7 @@ public class ScreenCaptureRecorder extends Thread {
 
     private Surface mSurface;
 
-    public ScreenCaptureRecorder(@NonNull MediaProjection mediaProjection, @NonNull ScreenCaptureConfig config) {
+    ScreenCaptureRecorder(@NonNull MediaProjection mediaProjection, @NonNull ScreenCaptureConfig config) {
         this.mediaProjection = mediaProjection;
         this.config = config;
     }
@@ -68,21 +68,25 @@ public class ScreenCaptureRecorder extends Thread {
     @Override
     public void run() {
         super.run();
+        boolean error = false;
         try {
-            try {
-                prepareEncoder();
-                mMuxer = new MediaMuxer(config.getFile().getAbsolutePath(), MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            reportState(ScreenCaptureState.CAPTURING);
+            prepareEncoder();
+            mMuxer = new MediaMuxer(config.getFile().getAbsolutePath(), MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
             mVirtualDisplay = mediaProjection.createVirtualDisplay(TAG + "-display",//
-                           config.getWidth(), config.getHeight(), config.getDpi(), //
-                           DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR/*VIRTUAL_DISPLAY_FLAG_PUBLIC*/,//
-                           mSurface, null, null);
+                                                                   config.getWidth(), config.getHeight(), config.getDpi(), //
+                                                                   DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR/*VIRTUAL_DISPLAY_FLAG_PUBLIC*/,//
+                                                                   mSurface, null, null);
             Log.d(TAG, "created virtual display: " + mVirtualDisplay);
             recordVirtualDisplay();
+        } catch (Exception e) {
+            error = true;
+            e.printStackTrace();
+            reportState(ScreenCaptureState.FAILED);
         } finally {
             release();
+            if (!error)
+                reportState(ScreenCaptureState.COMPLETED);
         }
     }
 
@@ -170,14 +174,23 @@ public class ScreenCaptureRecorder extends Thread {
         }
         if (mVirtualDisplay != null) {
             mVirtualDisplay.release();
+            mVirtualDisplay = null;
         }
         if (mediaProjection != null) {
             mediaProjection.stop();
+            mediaProjection = null;
         }
         if (mMuxer != null) {
             mMuxer.stop();
             mMuxer.release();
             mMuxer = null;
+        }
+    }
+
+    private void reportState(ScreenCaptureState state) {
+        ScreenCaptureCallback callback = config.getCaptureCallback();
+        if (callback != null) {
+            callback.captureState(state);
         }
     }
 }

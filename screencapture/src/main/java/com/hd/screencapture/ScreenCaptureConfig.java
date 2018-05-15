@@ -10,14 +10,26 @@ import java.io.File;
 public class ScreenCaptureConfig {
 
     /**
+     * report capture state
+     */
+    private ScreenCaptureCallback captureCallback;
+
+    /**
      * whether contain audio
      */
     private boolean audio;
 
     /**
+     * whether auto move task to back
+     */
+    private boolean autoMoveTaskToBack = true;
+
+    /**
      * video file
      */
-    private File file = new File(Environment.getExternalStorageDirectory(), "screen_capture_" + System.currentTimeMillis() + ".mp4");
+    private File file = new File(
+            Environment.getExternalStorageDirectory(), //
+            "screen_capture_" + System.currentTimeMillis() + ".mp4");
 
     /**
      * video width and height
@@ -48,12 +60,28 @@ public class ScreenCaptureConfig {
         return new ScreenCaptureConfig();
     }
 
+    public ScreenCaptureCallback getCaptureCallback() {
+        return captureCallback;
+    }
+
+    public void setCaptureCallback(ScreenCaptureCallback captureCallback) {
+        this.captureCallback = captureCallback;
+    }
+
     public boolean hasAudio() {
         return audio;
     }
 
     public void setAudio(boolean audio) {
         this.audio = audio;
+    }
+
+    public boolean isAutoMoveTaskToBack() {
+        return autoMoveTaskToBack;
+    }
+
+    public void setAutoMoveTaskToBack(boolean autoMoveTaskToBack) {
+        this.autoMoveTaskToBack = autoMoveTaskToBack;
     }
 
     public File getFile() {
@@ -120,8 +148,18 @@ public class ScreenCaptureConfig {
             this.captureConfig = new ScreenCaptureConfig();
         }
 
+        public Builder setCaptureCallback(ScreenCaptureCallback captureCallback) {
+            captureConfig.setCaptureCallback(captureCallback);
+            return this;
+        }
+
         public Builder setAudio(boolean audio) {
             captureConfig.setAudio(audio);
+            return this;
+        }
+
+        public Builder setAutoMoveTaskToBack(boolean autoMoveTaskToBack) {
+            captureConfig.setAutoMoveTaskToBack(autoMoveTaskToBack);
             return this;
         }
 
