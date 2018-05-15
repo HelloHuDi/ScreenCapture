@@ -20,8 +20,11 @@ public class ScreenCapture {
     private final String TAG = "Screen-Capture";
 
     public static ScreenCapture with(@NonNull AppCompatActivity activity) {
-        if(activity.isFinishing() || activity.isDestroyed()){
+        if (activity.isFinishing() || activity.isDestroyed()) {
             throw new RuntimeException("current activity is not running state !");
+        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            throw new RuntimeException("the sdk version less than 21 equipment does not provide this function");
         }
         return new ScreenCapture(activity);
     }
@@ -30,9 +33,11 @@ public class ScreenCapture {
 
     private ScreenCapture(@NonNull AppCompatActivity activity) {
         //add lifecycle observer
-        activity.getLifecycle().addObserver(new ScreenCaptureObserver(this));
-        //init the main capture work fragment
+        ScreenCaptureObserver observer = new ScreenCaptureObserver(this);
+        activity.getLifecycle().addObserver(observer);
+        //init the main capture work fragment7
         screenCaptureFragment = getScreenCaptureFragment(activity);
+        screenCaptureFragment.addObserver(observer);
         //init default config
         setConfig(ScreenCaptureConfig.initDefaultConfig());
     }

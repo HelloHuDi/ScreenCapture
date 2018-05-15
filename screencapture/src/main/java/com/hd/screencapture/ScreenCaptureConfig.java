@@ -17,22 +17,22 @@ public class ScreenCaptureConfig {
     /**
      * video file
      */
-    private File file;
+    private File file = new File(Environment.getExternalStorageDirectory(), "screen_capture_" + System.currentTimeMillis() + ".mp4");
 
     /**
      * video width and height
      */
-    private int width = 1280, height = 1920;
+    private int width = 1080, height = 1920;
 
     /**
      * device dpi
      */
-    private int dpi=480;
+    private int dpi = 480;
 
     /**
      * video bitrate
      */
-    private int bitrate = 60000;
+    private int bitrate = 25000;
 
     /**
      * video frame rate
@@ -44,19 +44,8 @@ public class ScreenCaptureConfig {
      */
     private int iFrameInterval = 10;
 
-
     public static ScreenCaptureConfig initDefaultConfig() {
-        return new ScreenCaptureConfig(true);
-    }
-
-    public ScreenCaptureConfig() {
-        this(false);
-    }
-
-    private ScreenCaptureConfig(boolean dfConfig) {
-        if (dfConfig) {
-            setFile(new File(Environment.getExternalStorageDirectory(), "screen_capture_" + System.currentTimeMillis() + ".mp4"));
-        }
+        return new ScreenCaptureConfig();
     }
 
     public boolean hasAudio() {
@@ -115,11 +104,64 @@ public class ScreenCaptureConfig {
         this.frameRate = frameRate;
     }
 
-    public int getiFrameInterval() {
+    public int getIFrameInterval() {
         return iFrameInterval;
     }
 
-    public void setiFrameInterval(int iFrameInterval) {
+    public void setIFrameInterval(int iFrameInterval) {
         this.iFrameInterval = iFrameInterval;
+    }
+
+    public static class Builder {
+
+        private ScreenCaptureConfig captureConfig;
+
+        public Builder() {
+            this.captureConfig = new ScreenCaptureConfig();
+        }
+
+        public Builder setAudio(boolean audio) {
+            captureConfig.setAudio(audio);
+            return this;
+        }
+
+        public Builder setFile(File file) {
+            captureConfig.setFile(file);
+            return this;
+        }
+
+        public Builder setWidth(int width) {
+            captureConfig.setWidth(width);
+            return this;
+        }
+
+        public Builder setHeight(int height) {
+            captureConfig.setHeight(height);
+            return this;
+        }
+
+        public Builder setDpi(int dpi) {
+            captureConfig.setDpi(dpi);
+            return this;
+        }
+
+        public Builder setBitrate(int bitrate) {
+            captureConfig.setBitrate(bitrate);
+            return this;
+        }
+
+        public Builder setFrameRate(int frameRate) {
+            captureConfig.setFrameRate(frameRate);
+            return this;
+        }
+
+        public Builder setIFrameInterval(int iFrameInterval) {
+            captureConfig.setIFrameInterval(iFrameInterval);
+            return this;
+        }
+
+        public ScreenCaptureConfig create() {
+            return captureConfig;
+        }
     }
 }

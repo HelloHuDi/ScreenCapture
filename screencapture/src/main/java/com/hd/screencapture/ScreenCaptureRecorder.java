@@ -25,6 +25,8 @@ public class ScreenCaptureRecorder extends Thread {
 
     private final String TAG = ScreenCaptureRecorder.class.getSimpleName();
 
+    private CaptureObserver observer;
+
     private MediaProjection mediaProjection;
 
     private ScreenCaptureConfig config;
@@ -34,8 +36,6 @@ public class ScreenCaptureRecorder extends Thread {
     private boolean mMuxerStarted = false;
 
     private int mVideoTrackIndex = -1;
-
-    private final String MIME_TYPE = MediaFormat.MIMETYPE_VIDEO_AVC; // H.264 Advanced Video Coding
 
     private MediaMuxer mMuxer;
 
@@ -47,9 +47,13 @@ public class ScreenCaptureRecorder extends Thread {
 
     private Surface mSurface;
 
-    public ScreenCaptureRecorder(@NonNull MediaProjection mediaProjection,@NonNull ScreenCaptureConfig config) {
+    public ScreenCaptureRecorder(@NonNull MediaProjection mediaProjection, @NonNull ScreenCaptureConfig config) {
         this.mediaProjection = mediaProjection;
         this.config = config;
+    }
+
+    public void addObserver(CaptureObserver observer) {
+        this.observer = observer;
     }
 
     public void startCapture() {
@@ -65,27 +69,30 @@ public class ScreenCaptureRecorder extends Thread {
     public void run() {
         super.run();
         try {
-            prepareEncoder();
-            mMuxer = new MediaMuxer(config.getFile().getAbsolutePath(), MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+            try {
+                prepareEncoder();
+                mMuxer = new MediaMuxer(config.getFile().getAbsolutePath(), MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
             mVirtualDisplay = mediaProjection.createVirtualDisplay(TAG + "-display",//
-                              config.getWidth(), config.getHeight(), config.getDpi(), //
-                              DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR/*VIRTUAL_DISPLAY_FLAG_PUBLIC*/,//
-                              mSurface, null, null);
+                           config.getWidth(), config.getHeight(), config.getDpi(), //
+                           DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR/*VIRTUAL_DISPLAY_FLAG_PUBLIC*/,//
+                           mSurface, null, null);
             Log.d(TAG, "created virtual display: " + mVirtualDisplay);
             recordVirtualDisplay();
-        }catch (Exception e){
-            e.printStackTrace();
-        }finally {
+        } finally {
             release();
         }
     }
 
     private void prepareEncoder() throws IOException {
+        final String MIME_TYPE = MediaFormat.MIMETYPE_VIDEO_AVC; // H.264 Advanced Video Coding
         MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, config.getWidth(), config.getHeight());
         format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
         format.setInteger(MediaFormat.KEY_BIT_RATE, config.getBitrate());
         format.setInteger(MediaFormat.KEY_FRAME_RATE, config.getFrameRate());
-        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, config.getiFrameInterval());
+        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, config.getIFrameInterval());
         Log.d(TAG, "created video format: " + format);
         mEncoder = MediaCodec.createEncoderByType(MIME_TYPE);
         mEncoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
@@ -95,9 +102,10 @@ public class ScreenCaptureRecorder extends Thread {
     }
 
     private void recordVirtualDisplay() {
-        while (recorder.get()) {
-            int index = mEncoder.dequeueOutputBuffer(mBufferInfo,1000);
-            Log.i(TAG, "dequeue output buffer index=" + index);
+        final long timeoutUs = 10000;
+        while (recorder.get() && observer.isAlive()) {
+            int index = mEncoder.dequeueOutputBuffer(mBufferInfo, timeoutUs);
+            Log.i(TAG, "dequeue output buffer index=" + index + "=" + recorder.get());
             if (index == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
                 resetOutputFormat();
             } else if (index == MediaCodec.INFO_TRY_AGAIN_LATER) {

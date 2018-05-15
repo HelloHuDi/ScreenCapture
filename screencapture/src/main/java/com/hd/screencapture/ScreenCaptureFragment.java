@@ -34,6 +34,8 @@ public class ScreenCaptureFragment extends Fragment {
 
     private Context appContext;
 
+    private CaptureObserver observer;
+
     private String[] permissions1 = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
 
     private String[] permissions2 = {Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO};
@@ -46,7 +48,8 @@ public class ScreenCaptureFragment extends Fragment {
 
     private ScreenCaptureConfig config;
 
-    public ScreenCaptureFragment() {
+    public void addObserver(CaptureObserver observer) {
+        this.observer = observer;
     }
 
     public void setConfig(@NonNull ScreenCaptureConfig config) {
@@ -54,13 +57,20 @@ public class ScreenCaptureFragment extends Fragment {
     }
 
     public void startCapture() {
-        if (hasPermissions()) {
-            Intent captureIntent = mMediaProjectionManager.createScreenCaptureIntent();
-            startActivityForResult(captureIntent, REQUEST_MEDIA_PROJECTION);
-        } else {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermission();
+        if (observer.isAlive()) {
+            if (hasPermissions()) {
+                Intent captureIntent = mMediaProjectionManager.createScreenCaptureIntent();
+                startActivityForResult(captureIntent, REQUEST_MEDIA_PROJECTION);
+            } else {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    requestPermission();
+                } else {
+                    Log.e(TAG, "fuck,how can this happened !");
+                }
             }
+        } else {
+            Log.e(TAG, "current activity is not alive state !!!");
+            stopCapture();
         }
     }
 
@@ -87,7 +97,7 @@ public class ScreenCaptureFragment extends Fragment {
             if (granted == PackageManager.PERMISSION_GRANTED) {
                 startCapture();
             } else {
-                Log.d(TAG, "No Permission!");
+                Log.e(TAG, "No Permission!");
             }
         }
     }
@@ -110,8 +120,15 @@ public class ScreenCaptureFragment extends Fragment {
     }
 
     private void startRecorder() {
-        screenCaptureRecorder = new ScreenCaptureRecorder(mediaProjection, config);
-        screenCaptureRecorder.startCapture();
+        if (observer.isAlive()) {
+            screenCaptureRecorder = new ScreenCaptureRecorder(mediaProjection, config);
+            screenCaptureRecorder.addObserver(observer);
+            screenCaptureRecorder.startCapture();
+            getActivity().moveTaskToBack(true);
+        } else {
+            Log.e(TAG, "start recorder failed ,current activity is not alive state !!!");
+            stopCapture();
+        }
     }
 
     private void cancelRecorder() {
@@ -146,5 +163,4 @@ public class ScreenCaptureFragment extends Fragment {
                 PackageManager.PERMISSION_GRANTED) | pm.checkPermission(WRITE_EXTERNAL_STORAGE, packageName);
         return granted == PackageManager.PERMISSION_GRANTED;
     }
-
 }
