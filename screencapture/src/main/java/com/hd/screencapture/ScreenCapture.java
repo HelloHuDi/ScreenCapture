@@ -35,7 +35,7 @@ public class ScreenCapture {
         //add lifecycle observer
         ScreenCaptureObserver observer = new ScreenCaptureObserver(this);
         activity.getLifecycle().addObserver(observer);
-        //init the main capture work fragment7
+        //init the main capture work fragment
         screenCaptureFragment = getScreenCaptureFragment(activity);
         screenCaptureFragment.addObserver(observer);
         //init default config
@@ -59,9 +59,7 @@ public class ScreenCapture {
     }
 
     public ScreenCapture setConfig(ScreenCaptureConfig config) {
-        if (screenCaptureFragment != null) {
-            screenCaptureFragment.setConfig(config);
-        }
+        screenCaptureFragment.setConfig(config);
         return this;
     }
 
@@ -70,23 +68,19 @@ public class ScreenCapture {
     }
 
     public void startCapture(long duration) {
-        if (screenCaptureFragment != null) {
-            screenCaptureFragment.startCapture();
-            if (duration > 0) {
-                new Timer().schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        stopCapture();
-                    }
-                }, duration);
-            }
+        screenCaptureFragment.startCapture();
+        if (duration > 0) {
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    stopCapture();
+                }
+            }, duration);
         }
     }
 
     public void stopCapture() {
-        if (screenCaptureFragment != null) {
-            screenCaptureFragment.stopCapture();
-        }
+        screenCaptureFragment.stopCapture();
     }
 
 }

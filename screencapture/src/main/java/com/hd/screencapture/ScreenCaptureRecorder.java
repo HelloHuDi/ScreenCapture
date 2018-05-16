@@ -85,8 +85,9 @@ public class ScreenCaptureRecorder extends Thread {
             reportState(ScreenCaptureState.FAILED);
         } finally {
             release();
-            if (!error)
+            if (!error) {
                 reportState(ScreenCaptureState.COMPLETED);
+            }
         }
     }
 
@@ -185,6 +186,7 @@ public class ScreenCaptureRecorder extends Thread {
             mMuxer.release();
             mMuxer = null;
         }
+        Log.d("tag","recorder release complete");
     }
 
     private void reportState(ScreenCaptureState state) {
