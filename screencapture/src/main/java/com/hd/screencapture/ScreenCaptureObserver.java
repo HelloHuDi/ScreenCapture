@@ -20,12 +20,12 @@ public class ScreenCaptureObserver extends CaptureObserver implements LifecycleO
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
     private void onResume() {
         Log.d(TAG, "onResume");
-        alive=true;
+        alive = true;
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     private void onDestroy() {
         Log.d(TAG, "onDestroy");
-        alive=false;
+        alive = false;
     }
 }

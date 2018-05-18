@@ -31,10 +31,12 @@ public class ScreenCapture {
 
     private ScreenCaptureFragment screenCaptureFragment;
 
+    private CaptureObserver observer;
+
     private ScreenCapture(@NonNull AppCompatActivity activity) {
         //add lifecycle observer
-        ScreenCaptureObserver observer = new ScreenCaptureObserver(this);
-        activity.getLifecycle().addObserver(observer);
+        observer = new ScreenCaptureObserver(this);
+        activity.getLifecycle().addObserver((ScreenCaptureObserver) observer);
         //init the main capture work fragment
         screenCaptureFragment = getScreenCaptureFragment(activity);
         screenCaptureFragment.addObserver(observer);
@@ -60,6 +62,7 @@ public class ScreenCapture {
 
     public ScreenCapture setConfig(ScreenCaptureConfig config) {
         screenCaptureFragment.setConfig(config);
+        observer.initConfig(config);
         return this;
     }
 

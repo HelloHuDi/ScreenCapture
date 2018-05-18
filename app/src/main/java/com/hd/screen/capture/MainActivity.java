@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements ScreenCaptureCall
                                                 .setFrameRate(60)//
                                                 .setIFrameInterval(10)//
                                                 .setCaptureCallback(this)//
-                                                .setAutoMoveTaskToBack(true)
+                                                .setAutoMoveTaskToBack(true)//
                                                 .create();//
         screenCapture = ScreenCapture.with(this).setConfig(captureConfig);
     }

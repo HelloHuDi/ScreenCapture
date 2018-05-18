@@ -70,7 +70,7 @@ public class ScreenCaptureRecorder extends Thread {
         super.run();
         boolean error = false;
         try {
-            reportState(ScreenCaptureState.CAPTURING);
+            observer.reportState(ScreenCaptureState.CAPTURING);
             prepareEncoder();
             mMuxer = new MediaMuxer(config.getFile().getAbsolutePath(), MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
             mVirtualDisplay = mediaProjection.createVirtualDisplay(TAG + "-display",//
@@ -82,11 +82,11 @@ public class ScreenCaptureRecorder extends Thread {
         } catch (Exception e) {
             error = true;
             e.printStackTrace();
-            reportState(ScreenCaptureState.FAILED);
+            observer.reportState(ScreenCaptureState.FAILED);
         } finally {
             release();
             if (!error) {
-                reportState(ScreenCaptureState.COMPLETED);
+                observer.reportState(ScreenCaptureState.COMPLETED);
             }
         }
     }
@@ -187,12 +187,5 @@ public class ScreenCaptureRecorder extends Thread {
             mMuxer = null;
         }
         Log.d("tag","recorder release complete");
-    }
-
-    private void reportState(ScreenCaptureState state) {
-        ScreenCaptureCallback callback = config.getCaptureCallback();
-        if (callback != null) {
-            callback.captureState(state);
-        }
     }
 }

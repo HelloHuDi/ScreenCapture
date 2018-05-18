@@ -59,7 +59,7 @@ public class ScreenCaptureFragment extends Fragment {
     public void startCapture() {
         if (observer.isAlive()) {
             if (hasPermissions()) {
-                reportState(ScreenCaptureState.PREPARE);
+                observer.reportState(ScreenCaptureState.PREPARE);
                 Intent captureIntent = mMediaProjectionManager.createScreenCaptureIntent();
                 startActivityForResult(captureIntent, REQUEST_MEDIA_PROJECTION);
             } else {
@@ -99,7 +99,7 @@ public class ScreenCaptureFragment extends Fragment {
                 startCapture();
             } else {
                 Log.e(TAG, "No Permission!");
-                reportState(ScreenCaptureState.FAILED);
+                observer.reportState(ScreenCaptureState.FAILED);
             }
         }
     }
@@ -117,7 +117,7 @@ public class ScreenCaptureFragment extends Fragment {
                 }
             } else {
                 Log.e(TAG, "media projection is null");
-                reportState(ScreenCaptureState.FAILED);
+                observer.reportState(ScreenCaptureState.FAILED);
             }
         }
     }
@@ -127,7 +127,7 @@ public class ScreenCaptureFragment extends Fragment {
             screenCaptureRecorder = new ScreenCaptureRecorder(mediaProjection, config);
             screenCaptureRecorder.addObserver(observer);
             screenCaptureRecorder.startCapture();
-            reportState(ScreenCaptureState.START);
+            observer.reportState(ScreenCaptureState.START);
             if (config.isAutoMoveTaskToBack())
                 getActivity().moveTaskToBack(true);
         } else {
@@ -169,10 +169,4 @@ public class ScreenCaptureFragment extends Fragment {
         return granted == PackageManager.PERMISSION_GRANTED;
     }
 
-    private void reportState(ScreenCaptureState state) {
-        ScreenCaptureCallback callback = config.getCaptureCallback();
-        if (callback != null) {
-            callback.captureState(state);
-        }
-    }
 }
