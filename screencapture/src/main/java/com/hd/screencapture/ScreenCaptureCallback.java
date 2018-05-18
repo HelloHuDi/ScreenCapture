@@ -5,5 +5,8 @@ package com.hd.screencapture;
  */
 public interface ScreenCaptureCallback {
 
+    /**
+     * report capture state{@link ScreenCaptureState}
+     */
     void captureState(ScreenCaptureState state);
 }

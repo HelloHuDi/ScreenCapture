@@ -1,5 +1,7 @@
 package com.hd.screencapture;
 
+import com.hd.screencapture.config.ScreenCaptureConfig;
+
 /**
  * Created by hd on 2018/5/15 .
  */
@@ -26,8 +28,6 @@ public abstract class CaptureObserver {
 
     public void stopCapture() {
         screenCapture.stopCapture();
-        alive = false;
-        screenCapture = null;
     }
 
     public void reportState(ScreenCaptureState state) {

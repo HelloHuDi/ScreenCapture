@@ -9,11 +9,11 @@ import android.util.Log;
 /**
  * Created by hd on 2018/5/14 .
  */
-public class ScreenCaptureObserver extends CaptureObserver implements LifecycleObserver {
+class ScreenCaptureObserver extends CaptureObserver implements LifecycleObserver {
 
     private final String TAG = ScreenCaptureObserver.class.getSimpleName();
 
-    public ScreenCaptureObserver(ScreenCapture screenCapture) {
+    ScreenCaptureObserver(ScreenCapture screenCapture) {
         super(screenCapture);
     }
 

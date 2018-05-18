@@ -13,6 +13,8 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.Surface;
 
+import com.hd.screencapture.config.ScreenCaptureConfig;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -74,7 +76,7 @@ public class ScreenCaptureRecorder extends Thread {
             prepareEncoder();
             mMuxer = new MediaMuxer(config.getFile().getAbsolutePath(), MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
             mVirtualDisplay = mediaProjection.createVirtualDisplay(TAG + "-display",//
-                                                                   config.getWidth(), config.getHeight(), config.getDpi(), //
+                                                                   config.getVideoConfig().getWidth(), config.getVideoConfig().getHeight(), config.getVideoConfig().getDpi(), //
                                                                    DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR/*VIRTUAL_DISPLAY_FLAG_PUBLIC*/,//
                                                                    mSurface, null, null);
             Log.d(TAG, "created virtual display: " + mVirtualDisplay);
@@ -83,6 +85,7 @@ public class ScreenCaptureRecorder extends Thread {
             error = true;
             e.printStackTrace();
             observer.reportState(ScreenCaptureState.FAILED);
+            observer.stopCapture();
         } finally {
             release();
             if (!error) {
@@ -93,11 +96,11 @@ public class ScreenCaptureRecorder extends Thread {
 
     private void prepareEncoder() throws IOException {
         final String MIME_TYPE = MediaFormat.MIMETYPE_VIDEO_AVC; // H.264 Advanced Video Coding
-        MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, config.getWidth(), config.getHeight());
+        MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, config.getVideoConfig().getWidth(), config.getVideoConfig().getHeight());
         format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
-        format.setInteger(MediaFormat.KEY_BIT_RATE, config.getBitrate());
-        format.setInteger(MediaFormat.KEY_FRAME_RATE, config.getFrameRate());
-        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, config.getIFrameInterval());
+        format.setInteger(MediaFormat.KEY_BIT_RATE, config.getVideoConfig().getBitrate());
+        format.setInteger(MediaFormat.KEY_FRAME_RATE, config.getVideoConfig().getFrameRate());
+        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, config.getVideoConfig().getIFrameInterval());
         Log.d(TAG, "created video format: " + format);
         mEncoder = MediaCodec.createEncoderByType(MIME_TYPE);
         mEncoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
@@ -116,7 +119,7 @@ public class ScreenCaptureRecorder extends Thread {
             } else if (index == MediaCodec.INFO_TRY_AGAIN_LATER) {
                 Log.d(TAG, "retrieving buffers time out!");
                 try {
-                    Thread.sleep(10);
+                    Thread.sleep(50);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

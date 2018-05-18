@@ -7,6 +7,8 @@ import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 
+import com.hd.screencapture.config.ScreenCaptureConfig;
+
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -24,7 +26,7 @@ public class ScreenCapture {
             throw new RuntimeException("current activity is not running state !");
         }
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            throw new RuntimeException("the sdk version less than 21 equipment does not provide this function");
+            throw new RuntimeException("the sdk version less than 21 equipment does not provide this function !");
         }
         return new ScreenCapture(activity);
     }
@@ -41,7 +43,7 @@ public class ScreenCapture {
         screenCaptureFragment = getScreenCaptureFragment(activity);
         screenCaptureFragment.addObserver(observer);
         //init default config
-        setConfig(ScreenCaptureConfig.initDefaultConfig());
+        setConfig(ScreenCaptureConfig.initDefaultConfig(activity));
     }
 
     private ScreenCaptureFragment getScreenCaptureFragment(Activity activity) {
