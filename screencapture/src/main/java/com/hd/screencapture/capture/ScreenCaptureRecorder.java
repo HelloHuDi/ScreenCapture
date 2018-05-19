@@ -1,4 +1,4 @@
-package com.hd.screencapture;
+package com.hd.screencapture.capture;
 
 import android.annotation.TargetApi;
 import android.hardware.display.DisplayManager;
@@ -9,11 +9,14 @@ import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.media.projection.MediaProjection;
 import android.os.Build;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.Surface;
 
 import com.hd.screencapture.config.ScreenCaptureConfig;
+import com.hd.screencapture.help.ScreenCaptureState;
+import com.hd.screencapture.observer.CaptureObserver;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -49,7 +52,7 @@ public class ScreenCaptureRecorder extends Thread {
 
     private Surface mSurface;
 
-    ScreenCaptureRecorder(@NonNull MediaProjection mediaProjection, @NonNull ScreenCaptureConfig config) {
+    public ScreenCaptureRecorder(@NonNull MediaProjection mediaProjection, @NonNull ScreenCaptureConfig config) {
         this.mediaProjection = mediaProjection;
         this.config = config;
     }
@@ -70,27 +73,22 @@ public class ScreenCaptureRecorder extends Thread {
     @Override
     public void run() {
         super.run();
-        boolean error = false;
         try {
             observer.reportState(ScreenCaptureState.CAPTURING);
             prepareEncoder();
             mMuxer = new MediaMuxer(config.getFile().getAbsolutePath(), MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
             mVirtualDisplay = mediaProjection.createVirtualDisplay(TAG + "-display",//
                                                                    config.getVideoConfig().getWidth(), config.getVideoConfig().getHeight(), config.getVideoConfig().getDpi(), //
-                                                                   DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR/*VIRTUAL_DISPLAY_FLAG_PUBLIC*/,//
+                                                                   DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC,//
                                                                    mSurface, null, null);
             Log.d(TAG, "created virtual display: " + mVirtualDisplay);
             recordVirtualDisplay();
         } catch (Exception e) {
-            error = true;
             e.printStackTrace();
             observer.reportState(ScreenCaptureState.FAILED);
             observer.stopCapture();
         } finally {
             release();
-            if (!error) {
-                observer.reportState(ScreenCaptureState.COMPLETED);
-            }
         }
     }
 
@@ -131,6 +129,7 @@ public class ScreenCaptureRecorder extends Thread {
                 mEncoder.releaseOutputBuffer(index, false);
             }
         }
+        observer.reportState(ScreenCaptureState.COMPLETED);
     }
 
     private void encodeToVideoTrack(int index) {
@@ -146,13 +145,42 @@ public class ScreenCaptureRecorder extends Thread {
             Log.d(TAG, "info.size == 0, drop it.");
             encodedData = null;
         } else {
-            Log.d(TAG, "got buffer, info: size=" + mBufferInfo.size + ", presentationTimeUs=" + mBufferInfo.presentationTimeUs + ", offset=" + mBufferInfo.offset);
+            Log.d(TAG, "got buffer, info: size=" + mBufferInfo.size +//
+                    ", presentationTimeUs=" + mBufferInfo.presentationTimeUs + ", offset=" + mBufferInfo.offset);
         }
         if (encodedData != null) {
+            setCaptureTime();
             encodedData.position(mBufferInfo.offset);
             encodedData.limit(mBufferInfo.offset + mBufferInfo.size);
             mMuxer.writeSampleData(mVideoTrackIndex, encodedData, mBufferInfo);
             Log.i(TAG, "sent " + mBufferInfo.size + " bytes to muxer...");
+        }
+    }
+
+    private void setCaptureTime() {
+        if (mBufferInfo.presentationTimeUs != 0) {
+            resetVideoPts(mBufferInfo);
+        }
+        if (startTime <= 0) {
+            startTime = mBufferInfo.presentationTimeUs;
+        }
+        long time = (mBufferInfo.presentationTimeUs - startTime) / 1000 / 1000;
+        //no need to report when time less than one second
+        if (SystemClock.elapsedRealtime() - mLastFiredTime < 1000) {
+            return;
+        }
+        observer.reportTime(time);
+        mLastFiredTime = SystemClock.elapsedRealtime();
+    }
+
+    private long mVideoPtsOffset, startTime, mLastFiredTime;
+
+    private void resetVideoPts(MediaCodec.BufferInfo buffer) {
+        if (mVideoPtsOffset == 0) {
+            mVideoPtsOffset = buffer.presentationTimeUs;
+            buffer.presentationTimeUs = 0;
+        } else {
+            buffer.presentationTimeUs -= mVideoPtsOffset;
         }
     }
 
@@ -189,6 +217,6 @@ public class ScreenCaptureRecorder extends Thread {
             mMuxer.release();
             mMuxer = null;
         }
-        Log.d("tag","recorder release complete");
+        Log.d("tag", "recorder release complete");
     }
 }

@@ -1,5 +1,8 @@
-package com.hd.screencapture;
+package com.hd.screencapture.observer;
 
+import com.hd.screencapture.ScreenCapture;
+import com.hd.screencapture.callback.ScreenCaptureCallback;
+import com.hd.screencapture.help.ScreenCaptureState;
 import com.hd.screencapture.config.ScreenCaptureConfig;
 
 /**
@@ -35,6 +38,15 @@ public abstract class CaptureObserver {
             ScreenCaptureCallback callback = config.getCaptureCallback();
             if (callback != null) {
                 callback.captureState(state);
+            }
+        }
+    }
+
+    public void reportTime(long time) {
+        if (isAlive() && config != null) {
+            ScreenCaptureCallback callback = config.getCaptureCallback();
+            if (callback != null) {
+                callback.captureTime(time);
             }
         }
     }

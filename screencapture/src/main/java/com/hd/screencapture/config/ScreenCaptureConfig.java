@@ -3,9 +3,8 @@ package com.hd.screencapture.config;
 import android.app.Activity;
 import android.os.Environment;
 import android.support.annotation.NonNull;
-import android.util.DisplayMetrics;
 
-import com.hd.screencapture.ScreenCaptureCallback;
+import com.hd.screencapture.callback.ScreenCaptureCallback;
 
 import java.io.File;
 
@@ -55,13 +54,7 @@ public class ScreenCaptureConfig extends CaptureConfig {
     }
 
     public static ScreenCaptureConfig initDefaultConfig(@NonNull Activity activity) {
-        DisplayMetrics metrics = new DisplayMetrics();
-        activity.getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        VideoConfig videoConfig=new VideoConfig();
-        videoConfig.setDpi(metrics.densityDpi);
-        videoConfig.setWidth(metrics.widthPixels);
-        videoConfig.setHeight(metrics.heightPixels);
-        return initDefaultConfig(videoConfig);
+        return initDefaultConfig(VideoConfig.initDefaultConfig(activity));
     }
 
     public VideoConfig getVideoConfig() {

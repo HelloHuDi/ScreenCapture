@@ -1,5 +1,9 @@
 package com.hd.screencapture.config;
 
+import android.app.Activity;
+import android.support.annotation.NonNull;
+import android.util.DisplayMetrics;
+
 /**
  * Created by hd on 2018/5/18 .
  */
@@ -32,6 +36,16 @@ public class VideoConfig extends CaptureConfig {
 
     public static VideoConfig initDefaultConfig() {
         return new VideoConfig();
+    }
+
+    public static VideoConfig initDefaultConfig(@NonNull Activity activity) {
+        DisplayMetrics metrics = new DisplayMetrics();
+        activity.getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        VideoConfig videoConfig = new VideoConfig();
+        videoConfig.setDpi(metrics.densityDpi);
+        videoConfig.setWidth(metrics.widthPixels);
+        videoConfig.setHeight(metrics.heightPixels);
+        return videoConfig;
     }
 
     public int getWidth() {

@@ -2,14 +2,17 @@ package com.hd.screen.capture;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import com.hd.screencapture.ScreenCapture;
-import com.hd.screencapture.ScreenCaptureCallback;
-import com.hd.screencapture.ScreenCaptureState;
+import com.hd.screencapture.callback.ScreenCaptureCallback;
 import com.hd.screencapture.config.AudioConfig;
 import com.hd.screencapture.config.ScreenCaptureConfig;
+import com.hd.screencapture.config.VideoConfig;
+import com.hd.screencapture.help.ScreenCaptureState;
 
 
 /**
@@ -18,6 +21,8 @@ import com.hd.screencapture.config.ScreenCaptureConfig;
 public class MainActivity extends AppCompatActivity implements ScreenCaptureCallback {
 
     private ScreenCapture screenCapture;
+
+    private boolean isRunning;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,35 +33,39 @@ public class MainActivity extends AppCompatActivity implements ScreenCaptureCall
 
     private void init() {
         ScreenCaptureConfig captureConfig = new ScreenCaptureConfig.Builder()//
-                                                                    .setAudioConfig(AudioConfig.initDefaultConfig())//
-                                                                    .setCaptureCallback(this)//
-                                                                    .setAutoMoveTaskToBack(true)//
-                                                                    .create();//
+                                                  .setVideoConfig(VideoConfig.initDefaultConfig(this))//
+                                                  .setAudioConfig(AudioConfig.initDefaultConfig())//
+                                                  .setCaptureCallback(this)//
+                                                  .setAutoMoveTaskToBack(true)//
+                                                  .create();//
         screenCapture = ScreenCapture.with(this).setConfig(captureConfig);
     }
 
     public void startCapture(View view) {
-        screenCapture.startCapture();
+        if (!isRunning) {
+            screenCapture.startCapture();
+        } else {
+            Toast.makeText(MainActivity.this, "current is capturing state", Toast.LENGTH_SHORT).show();
+        }
     }
 
     public void stopCapture(View view) {
-        screenCapture.stopCapture();
+        if (isRunning) {
+            screenCapture.stopCapture();
+        } else {
+            Toast.makeText(MainActivity.this, "current is stopped state", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
     public void captureState(ScreenCaptureState state) {
-        Log.d("tag", "capture state ==>" + state);
-        switch (state) {
-            case PREPARE:
-                break;
-            case START:
-                break;
-            case CAPTURING:
-                break;
-            case FAILED:
-                break;
-            case COMPLETED:
-                break;
-        }
+        isRunning = !(ScreenCaptureState.FAILED == state || ScreenCaptureState.COMPLETED == state);
+        Log.d("tag", "capture state ==>" + state + "==" + isRunning);
+        runOnUiThread(() -> Toast.makeText(MainActivity.this, "capture state ==>" + state, Toast.LENGTH_SHORT).show());
+    }
+
+    @Override
+    public void captureTime(long time) {
+        Log.d("tag", "capture time ==>" + time + "===" + DateUtils.formatElapsedTime(time));
     }
 }

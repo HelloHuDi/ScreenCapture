@@ -6,8 +6,13 @@ import android.app.FragmentManager;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 
 import com.hd.screencapture.config.ScreenCaptureConfig;
+import com.hd.screencapture.help.ScreenCaptureFragment;
+import com.hd.screencapture.help.Utils;
+import com.hd.screencapture.observer.CaptureObserver;
+import com.hd.screencapture.observer.ScreenCaptureObserver;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -19,7 +24,7 @@ import java.util.TimerTask;
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class ScreenCapture {
 
-    private final String TAG = "Screen-Capture";
+    private static final String TAG = "Screen-Capture";
 
     public static ScreenCapture with(@NonNull AppCompatActivity activity) {
         if (activity.isFinishing() || activity.isDestroyed()) {
@@ -27,6 +32,9 @@ public class ScreenCapture {
         }
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             throw new RuntimeException("the sdk version less than 21 equipment does not provide this function !");
+        }
+        if(!Utils.isExternalStorageReady()){
+            Log.e(TAG,"current no storage space");
         }
         return new ScreenCapture(activity);
     }
@@ -46,7 +54,7 @@ public class ScreenCapture {
         setConfig(ScreenCaptureConfig.initDefaultConfig(activity));
     }
 
-    private ScreenCaptureFragment getScreenCaptureFragment(Activity activity) {
+    private ScreenCaptureFragment getScreenCaptureFragment(@NonNull Activity activity) {
         ScreenCaptureFragment screenCaptureFragment = findScreenCaptureFragment(activity);
         boolean isNewInstance = screenCaptureFragment == null;
         if (isNewInstance) {
@@ -58,11 +66,13 @@ public class ScreenCapture {
         return screenCaptureFragment;
     }
 
-    private ScreenCaptureFragment findScreenCaptureFragment(Activity activity) {
+    private ScreenCaptureFragment findScreenCaptureFragment(@NonNull Activity activity) {
         return (ScreenCaptureFragment) activity.getFragmentManager().findFragmentByTag(TAG);
     }
 
-    public ScreenCapture setConfig(ScreenCaptureConfig config) {
+    public ScreenCapture setConfig(@NonNull ScreenCaptureConfig config) {
+        if (config.getVideoConfig() == null)
+            throw new RuntimeException("you must set the capture video config before start capture ");
         screenCaptureFragment.setConfig(config);
         observer.initConfig(config);
         return this;

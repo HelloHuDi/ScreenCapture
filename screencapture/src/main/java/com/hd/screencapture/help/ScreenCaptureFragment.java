@@ -1,4 +1,4 @@
-package com.hd.screencapture;
+package com.hd.screencapture.help;
 
 import android.Manifest;
 import android.annotation.TargetApi;
@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -17,6 +18,8 @@ import android.support.annotation.RequiresApi;
 import android.util.Log;
 
 import com.hd.screencapture.config.ScreenCaptureConfig;
+import com.hd.screencapture.capture.ScreenCaptureRecorder;
+import com.hd.screencapture.observer.CaptureObserver;
 
 import static android.Manifest.permission.RECORD_AUDIO;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
@@ -34,7 +37,7 @@ public class ScreenCaptureFragment extends Fragment {
 
     private final int PERMISSIONS_REQUEST_CODE = 442;
 
-    private Context appContext;
+    private static Context appContext;
 
     private CaptureObserver observer;
 
@@ -79,6 +82,9 @@ public class ScreenCaptureFragment extends Fragment {
 
     public void stopCapture() {
         cancelRecorder();
+        Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE)//
+                        .addCategory(Intent.CATEGORY_DEFAULT).setData(Uri.fromFile(config.getFile()));
+        appContext.sendBroadcast(intent);
     }
 
     @Override
@@ -126,10 +132,10 @@ public class ScreenCaptureFragment extends Fragment {
 
     private void startRecorder() {
         if (observer.isAlive()) {
+            observer.reportState(ScreenCaptureState.START);
             screenCaptureRecorder = new ScreenCaptureRecorder(mediaProjection, config);
             screenCaptureRecorder.addObserver(observer);
             screenCaptureRecorder.startCapture();
-            observer.reportState(ScreenCaptureState.START);
             if (config.isAutoMoveTaskToBack())
                 getActivity().moveTaskToBack(true);
         } else {
