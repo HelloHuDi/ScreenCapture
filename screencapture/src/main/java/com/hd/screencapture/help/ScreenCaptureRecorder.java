@@ -1,4 +1,4 @@
-package com.hd.screencapture.capture;
+package com.hd.screencapture.help;
 
 import android.annotation.TargetApi;
 import android.hardware.display.DisplayManager;
@@ -15,7 +15,6 @@ import android.util.Log;
 import android.view.Surface;
 
 import com.hd.screencapture.config.ScreenCaptureConfig;
-import com.hd.screencapture.help.ScreenCaptureState;
 import com.hd.screencapture.observer.CaptureObserver;
 
 import java.io.IOException;
@@ -52,7 +51,7 @@ public class ScreenCaptureRecorder extends Thread {
 
     private Surface mSurface;
 
-    public ScreenCaptureRecorder(@NonNull MediaProjection mediaProjection, @NonNull ScreenCaptureConfig config) {
+    ScreenCaptureRecorder(@NonNull MediaProjection mediaProjection, @NonNull ScreenCaptureConfig config) {
         this.mediaProjection = mediaProjection;
         this.config = config;
     }

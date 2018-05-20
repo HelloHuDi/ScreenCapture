@@ -18,7 +18,6 @@ import android.support.annotation.RequiresApi;
 import android.util.Log;
 
 import com.hd.screencapture.config.ScreenCaptureConfig;
-import com.hd.screencapture.capture.ScreenCaptureRecorder;
 import com.hd.screencapture.observer.CaptureObserver;
 
 import static android.Manifest.permission.RECORD_AUDIO;
@@ -161,12 +160,13 @@ public class ScreenCaptureFragment extends Fragment {
             return;
         }
         new AlertDialog.Builder(getActivity())//
-                                              .setMessage("Using your mic to record audio and your sd card to save video file")//
-                                              .setCancelable(false)//
-                                              .setPositiveButton(android.R.string.ok, (dialog, which) -> requestPermissions(permissions, PERMISSIONS_REQUEST_CODE))//
-                                              .setNegativeButton(android.R.string.cancel, null)//
-                                              .create()//
-                                              .show();
+                       .setMessage("Using your mic to record audio and your sd card to save video file")//
+                       .setCancelable(false)//
+                       .setPositiveButton(android.R.string.ok, (dialog, which) -> //
+                               requestPermissions(permissions, PERMISSIONS_REQUEST_CODE))//
+                       .setNegativeButton(android.R.string.cancel, null)//
+                       .create()//
+                       .show();
     }
 
     private boolean hasPermissions() {
