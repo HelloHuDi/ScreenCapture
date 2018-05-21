@@ -4,7 +4,6 @@ import android.annotation.TargetApi;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import android.media.MediaCodec;
-import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.media.projection.MediaProjection;
@@ -12,13 +11,16 @@ import android.os.Build;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.util.Log;
-import android.view.Surface;
 
+import com.hd.screencapture.callback.RecorderCallback;
+import com.hd.screencapture.capture.AudioRecorder;
+import com.hd.screencapture.capture.VideoRecorder;
 import com.hd.screencapture.config.ScreenCaptureConfig;
 import com.hd.screencapture.observer.CaptureObserver;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -39,17 +41,13 @@ public class ScreenCaptureRecorder extends Thread {
 
     private boolean mMuxerStarted = false;
 
-    private int mVideoTrackIndex = -1;
-
     private MediaMuxer mMuxer;
-
-    private MediaCodec mEncoder;
 
     private VirtualDisplay mVirtualDisplay;
 
-    private MediaCodec.BufferInfo mBufferInfo = new MediaCodec.BufferInfo();
+    private VideoRecorder videoRecorder;
 
-    private Surface mSurface;
+    private AudioRecorder audioRecorder;
 
     ScreenCaptureRecorder(@NonNull MediaProjection mediaProjection, @NonNull ScreenCaptureConfig config) {
         this.mediaProjection = mediaProjection;
@@ -67,103 +65,294 @@ public class ScreenCaptureRecorder extends Thread {
 
     public void stopCapture() {
         recorder.set(false);
+        release();
     }
 
     @Override
     public void run() {
         super.run();
         try {
-            observer.reportState(ScreenCaptureState.CAPTURING);
-            prepareEncoder();
-            mMuxer = new MediaMuxer(config.getFile().getAbsolutePath(), MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
-            mVirtualDisplay = mediaProjection.createVirtualDisplay(TAG + "-display",//
-                                                                   config.getVideoConfig().getWidth(), config.getVideoConfig().getHeight(), config.getVideoConfig().getDpi(), //
-                                                                   DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC,//
-                                                                   mSurface, null, null);
-            Log.d(TAG, "created virtual display: " + mVirtualDisplay);
-            recordVirtualDisplay();
+            if (prepareEncoder() && startEncoder()) {
+                observer.reportState(ScreenCaptureState.CAPTURING);
+                mMuxer = new MediaMuxer(config.getFile().getAbsolutePath(), MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+                mVirtualDisplay = mediaProjection.createVirtualDisplay(TAG + "-display",//
+                                                                       config.getVideoConfig().getWidth(), config.getVideoConfig().getHeight(), config.getVideoConfig().getDpi(), //
+                                                                       DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC,//
+                                                                       videoRecorder.getSurface(), null, null);
+            } else {
+                throw new RuntimeException("prepare encoder failed");
+            }
         } catch (Exception e) {
             e.printStackTrace();
-            observer.reportState(ScreenCaptureState.FAILED);
-            observer.stopCapture();
-        } finally {
-            release();
+            observer.notAllowEnterNextStep();
         }
     }
 
-    private void prepareEncoder() throws IOException {
-        final String MIME_TYPE = MediaFormat.MIMETYPE_VIDEO_AVC; // H.264 Advanced Video Coding
-        MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, config.getVideoConfig().getWidth(), config.getVideoConfig().getHeight());
-        format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
-        format.setInteger(MediaFormat.KEY_BIT_RATE, config.getVideoConfig().getBitrate());
-        format.setInteger(MediaFormat.KEY_FRAME_RATE, config.getVideoConfig().getFrameRate());
-        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, config.getVideoConfig().getIFrameInterval());
-        Log.d(TAG, "created video format: " + format);
-        mEncoder = MediaCodec.createEncoderByType(MIME_TYPE);
-        mEncoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
-        mSurface = mEncoder.createInputSurface();
-        Log.d(TAG, "created input surface: " + mSurface);
-        mEncoder.start();
+    private boolean prepareEncoder() {
+        return config.hasAudio() ? (prepareVideoEncoder() && prepareAudioEncoder()) : prepareVideoEncoder();
     }
 
-    private void recordVirtualDisplay() {
-        final long timeoutUs = 10000;
-        while (recorder.get() && observer.isAlive()) {
-            int index = mEncoder.dequeueOutputBuffer(mBufferInfo, timeoutUs);
-            Log.i(TAG, "dequeue output buffer index=" + index + "=" + recorder.get());
-            if (index == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-                resetOutputFormat();
-            } else if (index == MediaCodec.INFO_TRY_AGAIN_LATER) {
-                Log.d(TAG, "retrieving buffers time out!");
+    private boolean startEncoder() {
+        return config.hasAudio() ? (videoRecorder.record() && audioRecorder.record()) : videoRecorder.record();
+    }
+
+    private boolean prepareVideoEncoder() {
+        videoRecorder = new VideoRecorder(observer, config, new RecorderCallback() {
+            @Override
+            public void onInputBufferAvailable(int index) {
+                if (config.allowLog())
+                    Log.d(TAG, "VideoRecorder onInputBufferAvailable :" + index);
+            }
+
+            @Override
+            public void onOutputFormatChanged(MediaFormat format) {
+                if (config.allowLog())
+                    Log.d(TAG, "VideoRecorder onOutputFormatChanged:" + format);
+                resetVideoOutputFormat(format);
+                startMuxerIfReady();
+            }
+
+            @Override
+            public void onOutputBufferAvailable(int index, MediaCodec.BufferInfo info) {
+                if (config.allowLog())
+                    Log.i(TAG, "VideoRecorder onOutputBufferAvailable :" + index + "==" + info.size);
                 try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
+                    muxVideo(index, info);
+                } catch (Exception e) {
                     e.printStackTrace();
+                    if (config.allowLog())
+                        Log.e(TAG, "Muxer encountered an error! ", e);
                 }
-            } else if (index >= 0) {
-                if (!mMuxerStarted) {
-                    throw new IllegalStateException("MediaMuxer dose not call addTrack(format) ");
+            }
+
+            @Override
+            public void onError(Exception exception) {
+                if (config.allowLog())
+                    Log.d(TAG, "VideoRecorder onError :" + exception);
+                observer.notAllowEnterNextStep();
+            }
+        });
+        return videoRecorder.prepare();
+    }
+
+    private boolean prepareAudioEncoder() {
+        audioRecorder = new AudioRecorder(observer, config, new RecorderCallback() {
+            @Override
+            public void onInputBufferAvailable(int index) {
+                if (config.allowLog())
+                    Log.d(TAG, "AudioRecorder onInputBufferAvailable :" + index);
+            }
+
+            @Override
+            public void onOutputFormatChanged(MediaFormat format) {
+                if (config.allowLog())
+                    Log.d(TAG, "AudioRecorder onOutputFormatChanged :" + format);
+                resetAudioOutputFormat(format);
+                startMuxerIfReady();
+            }
+
+            @Override
+            public void onOutputBufferAvailable(int index, MediaCodec.BufferInfo info) {
+                if (config.allowLog())
+                    Log.i(TAG, "AudioRecorder onOutputBufferAvailable: " + index + "==" + info.size);
+                try {
+                    muxAudio(index, info);
+                } catch (Exception e) {
+                    if (config.allowLog())
+                        Log.e(TAG, "Muxer encountered an error! ", e);
                 }
-                encodeToVideoTrack(index);
-                mEncoder.releaseOutputBuffer(index, false);
+            }
+
+            @Override
+            public void onError(Exception exception) {
+                if (config.allowLog())
+                    Log.d(TAG, "AudioRecorder onError :" + "==" + exception);
+                observer.notAllowEnterNextStep();
+            }
+        });
+        return audioRecorder.prepare();
+    }
+
+    private final int INVALID_INDEX = -1;
+
+    private byte[] sps, pps;
+
+    private MediaFormat mVideoOutputFormat = null, mAudioOutputFormat = null;
+
+    private int mVideoTrackIndex = INVALID_INDEX, mAudioTrackIndex = INVALID_INDEX;
+
+    private LinkedList<Integer> mPendingVideoEncoderBufferIndices = new LinkedList<>();
+
+    private LinkedList<Integer> mPendingAudioEncoderBufferIndices = new LinkedList<>();
+
+    private LinkedList<MediaCodec.BufferInfo> mPendingAudioEncoderBufferInfos = new LinkedList<>();
+
+    private LinkedList<MediaCodec.BufferInfo> mPendingVideoEncoderBufferInfos = new LinkedList<>();
+
+    private void resetVideoOutputFormat(MediaFormat newFormat) {
+        if (mVideoTrackIndex >= 0 || mMuxerStarted) {
+            throw new IllegalStateException("output format already changed!");
+        }
+        mVideoOutputFormat = newFormat;
+        sps = newFormat.getByteBuffer("csd-0").array();
+        pps = newFormat.getByteBuffer("csd-1").array();
+        if (config.allowLog())
+            Log.i(TAG, "Video output format changed.\n New format: " + newFormat.toString() +//
+                    "\nvideo sps :" + Arrays.toString(sps) + "\nvideo pps :" + Arrays.toString(pps));
+        // video sps :[0, 0, 0, 1, 103, 66, -128, 42, -38, 1, 16, 15, 30, 94, 82, 10, 12, 12, 13, -95, 66, 106]
+        // video pps :[0, 0, 0, 1, 104, -50, 6, -30]
+        observer.reportVideoHeaderByte(sps, pps);
+    }
+
+    private void resetAudioOutputFormat(MediaFormat newFormat) {
+        if (mAudioTrackIndex >= 0 || mMuxerStarted) {
+            throw new IllegalStateException("output format already changed!");
+        }
+        mAudioOutputFormat = newFormat;
+        if (config.allowLog())
+            Log.i(TAG, "Audio output format changed.\n New format: " + newFormat.toString());
+    }
+
+    private void startMuxerIfReady() {
+        if (mMuxerStarted || mVideoOutputFormat == null || (audioRecorder != null && mAudioOutputFormat == null)) {
+            return;
+        }
+        mVideoTrackIndex = mMuxer.addTrack(mVideoOutputFormat);
+        mAudioTrackIndex = !config.hasAudio() && audioRecorder == null ? INVALID_INDEX : mMuxer.addTrack(mAudioOutputFormat);
+        mMuxer.start();
+        mMuxerStarted = true;
+        if (config.allowLog())
+            Log.i(TAG, "Started media muxer, videoIndex=" + mVideoTrackIndex);
+        if (mPendingVideoEncoderBufferIndices.isEmpty() && mPendingAudioEncoderBufferIndices.isEmpty()) {
+            return;
+        }
+        if (config.allowLog())
+            Log.i(TAG, "Mux pending video output buffers...");
+        MediaCodec.BufferInfo info;
+        while ((info = mPendingVideoEncoderBufferInfos.poll()) != null) {
+            int index = mPendingVideoEncoderBufferIndices.poll();
+            muxVideo(index, info);
+        }
+        if (config.hasAudio() && audioRecorder != null) {
+            while ((info = mPendingAudioEncoderBufferInfos.poll()) != null) {
+                int index = mPendingAudioEncoderBufferIndices.poll();
+                muxAudio(index, info);
             }
         }
-        observer.reportState(ScreenCaptureState.COMPLETED);
+        if (config.allowLog())
+            Log.i(TAG, "Mux pending video output buffers done.");
     }
 
-    private void encodeToVideoTrack(int index) {
-        ByteBuffer encodedData = mEncoder.getOutputBuffer(index);
-        if ((mBufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
+    private void muxVideo(int index, MediaCodec.BufferInfo info) {
+        if (!recorder.get()) {
+            if (config.allowLog())
+                Log.w(TAG, "muxVideo: Already stopped!");
+            return;
+        }
+        if (!mMuxerStarted || mVideoTrackIndex == INVALID_INDEX) {
+            mPendingVideoEncoderBufferIndices.add(index);
+            mPendingVideoEncoderBufferInfos.add(info);
+            return;
+        }
+        ByteBuffer encodedData = videoRecorder.getOutputBuffer(index);
+        writeSampleData(mVideoTrackIndex, info, encodedData);
+        videoRecorder.releaseOutputBuffer(index);
+        if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+            if (config.allowLog())
+                Log.d(TAG, "Stop encoder and muxer, since the buffer has been marked with EOS");
+            mVideoTrackIndex = INVALID_INDEX;
+        }
+    }
+
+    private void muxAudio(int index, MediaCodec.BufferInfo info) {
+        if (!recorder.get()) {
+            if (config.allowLog())
+                Log.w(TAG, "muxAudio: Already stopped!");
+            return;
+        }
+        if (!mMuxerStarted || mAudioTrackIndex == INVALID_INDEX) {
+            mPendingAudioEncoderBufferIndices.add(index);
+            mPendingAudioEncoderBufferInfos.add(info);
+            return;
+        }
+        ByteBuffer encodedData = audioRecorder.getOutputBuffer(index);
+        writeSampleData(mAudioTrackIndex, info, encodedData);
+        audioRecorder.releaseOutputBuffer(index);
+        if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+            if (config.allowLog())
+                Log.d(TAG, "Stop encoder and muxer, since the buffer has been marked with EOS");
+            mAudioTrackIndex = INVALID_INDEX;
+        }
+    }
+
+    private void writeSampleData(int track, MediaCodec.BufferInfo info, ByteBuffer encodedData) {
+        if ((info.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
             // The codec config data was pulled out and fed to the muxer when we got
             // the INFO_OUTPUT_FORMAT_CHANGED status.
             // Ignore it.
-            Log.d(TAG, "ignoring BUFFER_FLAG_CODEC_CONFIG");
-            mBufferInfo.size = 0;
+            if (config.allowLog())
+                Log.d(TAG, "Ignoring BUFFER_FLAG_CODEC_CONFIG");
+            info.size = 0;
         }
-        if (mBufferInfo.size == 0) {
+        boolean eos = (info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0;
+        if (info.size == 0 && !eos) {
             Log.d(TAG, "info.size == 0, drop it.");
             encodedData = null;
         } else {
-            Log.d(TAG, "got buffer, info: size=" + mBufferInfo.size +//
-                    ", presentationTimeUs=" + mBufferInfo.presentationTimeUs + ", offset=" + mBufferInfo.offset);
+            if (info.presentationTimeUs != 0) { // maybe 0 if eos
+                if (track == mVideoTrackIndex) {
+                    setCaptureTime(true, info);
+                } else if (track == mAudioTrackIndex) {
+                    setCaptureTime(false, info);
+                }
+            }
+            if (config.allowLog())
+                Log.d(TAG, "Got buffer, track=" + track + ", info: size=" + info.size + ", presentationTimeUs=" + info.presentationTimeUs);
         }
         if (encodedData != null) {
-            setCaptureTime();
-            encodedData.position(mBufferInfo.offset);
-            encodedData.limit(mBufferInfo.offset + mBufferInfo.size);
-            mMuxer.writeSampleData(mVideoTrackIndex, encodedData, mBufferInfo);
-            Log.i(TAG, "sent " + mBufferInfo.size + " bytes to muxer...");
+            encodedData.position(info.offset);
+            encodedData.limit(info.offset + info.size);
+            mMuxer.writeSampleData(track, encodedData, info);
+            if (config.allowLog())
+                Log.i(TAG, "Sent " + info.size + " bytes to MediaMuxer on track " + track);
+            reportData(track, info, encodedData);
         }
     }
 
-    private void setCaptureTime() {
-        if (mBufferInfo.presentationTimeUs != 0) {
-            resetVideoPts(mBufferInfo);
+    private void reportData(int track, MediaCodec.BufferInfo info, ByteBuffer encodedData) {
+        byte[] bytes = null;
+        if (track == mVideoTrackIndex) {//send video data
+            if (info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
+                bytes = new byte[info.size + sps.length + pps.length];
+                System.arraycopy(sps, 0, bytes, 0, sps.length);
+                System.arraycopy(pps, 0, bytes, sps.length, pps.length);
+                encodedData.get(bytes, sps.length + pps.length, info.size);
+            } else {
+                bytes = new byte[info.size];
+                encodedData.get(bytes, 0, info.size);
+            }
+            observer.reportVideoContentByte(bytes);
+        } else if (track == mAudioTrackIndex) {//send audio data
+            bytes = new byte[info.size];
+            encodedData.get(bytes, 0, info.size);
+            observer.reportAudioContentByte(bytes);
+        }
+        if (config.allowLog() && bytes != null)
+            Log.i(TAG, "report video data :" + bytes.length + "==" + Arrays.toString(bytes));
+    }
+
+    private void setCaptureTime(boolean isVideo, MediaCodec.BufferInfo info) {
+        if (info.presentationTimeUs != 0) {
+            if (isVideo) {
+                resetVideoPts(info);
+            } else {
+                resetAudioPts(info);
+            }
         }
         if (startTime <= 0) {
-            startTime = mBufferInfo.presentationTimeUs;
+            startTime = info.presentationTimeUs;
         }
-        long time = (mBufferInfo.presentationTimeUs - startTime) / 1000 / 1000;
+        long time = (info.presentationTimeUs - startTime) / 1000 / 1000;
         //no need to report when time less than one second
         if (SystemClock.elapsedRealtime() - mLastFiredTime < 1000) {
             return;
@@ -172,7 +361,16 @@ public class ScreenCaptureRecorder extends Thread {
         mLastFiredTime = SystemClock.elapsedRealtime();
     }
 
-    private long mVideoPtsOffset, startTime, mLastFiredTime;
+    private long mVideoPtsOffset, mAudioPtsOffset, startTime, mLastFiredTime;
+
+    private void resetAudioPts(MediaCodec.BufferInfo buffer) {
+        if (mAudioPtsOffset == 0) {
+            mAudioPtsOffset = buffer.presentationTimeUs;
+            buffer.presentationTimeUs = 0;
+        } else {
+            buffer.presentationTimeUs -= mAudioPtsOffset;
+        }
+    }
 
     private void resetVideoPts(MediaCodec.BufferInfo buffer) {
         if (mVideoPtsOffset == 0) {
@@ -183,26 +381,12 @@ public class ScreenCaptureRecorder extends Thread {
         }
     }
 
-    private void resetOutputFormat() {
-        // should happen before receiving buffers, and should only happen once
-        if (mMuxerStarted) {
-            throw new IllegalStateException("output format already changed!");
-        }
-        MediaFormat newFormat = mEncoder.getOutputFormat();
-        Log.i(TAG, "output format changed.\n new format: " + newFormat.toString());
-        mVideoTrackIndex = mMuxer.addTrack(newFormat);
-        mMuxer.start();
-        mMuxerStarted = true;
-        Log.i(TAG, "started media muxer, videoIndex=" + mVideoTrackIndex);
-    }
-
     private void release() {
-        if (mEncoder != null) {
-            mEncoder.stop();
-            mEncoder.reset();
-            mEncoder.release();
-            mEncoder = null;
-        }
+        stopEncoders();
+        signalStop();
+        mVideoOutputFormat = mAudioOutputFormat = null;
+        mVideoTrackIndex = mAudioTrackIndex = INVALID_INDEX;
+        mMuxerStarted = false;
         if (mVirtualDisplay != null) {
             mVirtualDisplay.release();
             mVirtualDisplay = null;
@@ -212,10 +396,48 @@ public class ScreenCaptureRecorder extends Thread {
             mediaProjection = null;
         }
         if (mMuxer != null) {
-            mMuxer.stop();
-            mMuxer.release();
+            try {
+                mMuxer.stop();
+                mMuxer.release();
+            } catch (Exception e) {
+                // ignored
+            }
             mMuxer = null;
         }
-        Log.d("tag", "recorder release complete");
+        if (config.allowLog())
+            Log.d(TAG, "recorder release complete");
     }
+
+    private void stopEncoders() {
+        mPendingAudioEncoderBufferInfos.clear();
+        mPendingAudioEncoderBufferIndices.clear();
+        mPendingVideoEncoderBufferInfos.clear();
+        mPendingVideoEncoderBufferIndices.clear();
+        // maybe called on an error has been occurred
+        if (videoRecorder != null) {
+            videoRecorder.release();
+            videoRecorder = null;
+        }
+        if (audioRecorder != null) {
+            audioRecorder.release();
+            audioRecorder = null;
+        }
+    }
+
+    private void signalStop() {
+        MediaCodec.BufferInfo eos = new MediaCodec.BufferInfo();
+        ByteBuffer buffer = ByteBuffer.allocate(0);
+        eos.set(0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+        if (config.allowLog())
+            Log.i(TAG, "Signal EOS to muxer ");
+        if (mVideoTrackIndex != INVALID_INDEX) {
+            writeSampleData(mVideoTrackIndex, eos, buffer);
+        }
+        if (mAudioTrackIndex != INVALID_INDEX) {
+            writeSampleData(mAudioTrackIndex, eos, buffer);
+        }
+        mVideoTrackIndex = INVALID_INDEX;
+        mAudioTrackIndex = INVALID_INDEX;
+    }
+
 }

@@ -29,5 +29,6 @@ public class ScreenCaptureObserver extends CaptureObserver implements LifecycleO
     private void onDestroy() {
         Log.d(TAG, "onDestroy");
         alive = false;
+        stopCapture();
     }
 }

@@ -34,6 +34,8 @@ public class VideoConfig extends CaptureConfig {
      */
     private int iFrameInterval = 10;
 
+    private String profileLevels ;
+
     public static VideoConfig initDefaultConfig() {
         return new VideoConfig();
     }

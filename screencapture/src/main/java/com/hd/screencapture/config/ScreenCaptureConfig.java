@@ -14,6 +14,11 @@ import java.io.File;
 public class ScreenCaptureConfig extends CaptureConfig {
 
     /**
+     * about logcat
+     */
+    private boolean allowLog;
+
+    /**
      * about video config
      */
     private VideoConfig videoConfig;
@@ -55,6 +60,14 @@ public class ScreenCaptureConfig extends CaptureConfig {
 
     public static ScreenCaptureConfig initDefaultConfig(@NonNull Activity activity) {
         return initDefaultConfig(VideoConfig.initDefaultConfig(activity));
+    }
+
+    public boolean allowLog() {
+        return allowLog;
+    }
+
+    public void setAllowLog(boolean allowLog) {
+        this.allowLog = allowLog;
     }
 
     public VideoConfig getVideoConfig() {
@@ -107,6 +120,11 @@ public class ScreenCaptureConfig extends CaptureConfig {
 
         public Builder() {
             this.captureConfig = new ScreenCaptureConfig();
+        }
+
+        public Builder setAllowLog(boolean allowLog) {
+            captureConfig.setAllowLog(allowLog);
+            return this;
         }
 
         public Builder setVideoConfig(VideoConfig videoConfig) {

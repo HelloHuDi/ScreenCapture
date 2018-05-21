@@ -16,6 +16,7 @@ import com.hd.screencapture.observer.ScreenCaptureObserver;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**
@@ -33,8 +34,8 @@ public class ScreenCapture {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             throw new RuntimeException("the sdk version less than 21 equipment does not provide this function !");
         }
-        if(!Utils.isExternalStorageReady()){
-            Log.e(TAG,"current no storage space");
+        if (!Utils.isExternalStorageReady()) {
+            Log.e(TAG, "current no storage space");
         }
         return new ScreenCapture(activity);
     }
@@ -42,6 +43,8 @@ public class ScreenCapture {
     private ScreenCaptureFragment screenCaptureFragment;
 
     private CaptureObserver observer;
+
+    protected AtomicBoolean capture = new AtomicBoolean(false);
 
     private ScreenCapture(@NonNull AppCompatActivity activity) {
         //add lifecycle observer
@@ -78,24 +81,37 @@ public class ScreenCapture {
         return this;
     }
 
+    public boolean isRunning(){
+        return capture.get();
+    }
+
     public void startCapture() {
         startCapture(-1);
     }
 
     public void startCapture(long duration) {
-        screenCaptureFragment.startCapture();
-        if (duration > 0) {
-            new Timer().schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    stopCapture();
-                }
-            }, duration);
+        if (!isRunning()) {
+            capture.set(true);
+            screenCaptureFragment.startCapture();
+            if (duration > 0) {
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        stopCapture();
+                    }
+                }, duration);
+            }
+        } else {
+            Log.e(TAG, "capturing !!!");
         }
     }
 
     public void stopCapture() {
-        screenCaptureFragment.stopCapture();
+        if (isRunning()) {
+            screenCaptureFragment.stopCapture();
+        } else {
+            Log.e(TAG, "stop capture always");
+        }
     }
 
 }
