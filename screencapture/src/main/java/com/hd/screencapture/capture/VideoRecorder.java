@@ -6,6 +6,7 @@ import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.os.Build;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Surface;
 
@@ -17,13 +18,13 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Objects;
 
-import static android.content.ContentValues.TAG;
-
 /**
  * Created by hd on 2018/5/20 .
  */
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class VideoRecorder extends Recorder {
+
+    private final String TAG = "VideoRecorder";
 
     private Surface surface;
 
@@ -81,20 +82,29 @@ public class VideoRecorder extends Recorder {
         format.setInteger(MediaFormat.KEY_BIT_RATE, config.getVideoConfig().getBitrate());
         format.setInteger(MediaFormat.KEY_FRAME_RATE, config.getVideoConfig().getFrameRate());
         format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, config.getVideoConfig().getIFrameInterval());
-        if(config.allowLog())
-        Log.d(TAG, "created video format: " + format);
+        MediaCodecInfo.CodecProfileLevel codecProfileLevel=config.getVideoConfig().getLevel();
+        if (codecProfileLevel != null && codecProfileLevel.profile != 0 && codecProfileLevel.level != 0) {
+            format.setInteger(MediaFormat.KEY_PROFILE, codecProfileLevel.profile);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                format.setInteger(MediaFormat.KEY_LEVEL, codecProfileLevel.level);
+            }else{
+                format.setInteger("level", codecProfileLevel.level);
+            }
+        }
+        if (config.allowLog())
+            Log.d(TAG, "created video format: " + format);
         return format;
     }
 
     private MediaCodec createEncoder(String mimeType) throws IOException {
-        //        try {
-        //            // use codec name first
-        //            if (this.mCodecName != null) {
-        //                return MediaCodec.createByCodecName(mCodecName);
-        //            }
-        //        } catch (IOException e) {
-        //            Log.w("@@", "Create MediaCodec by name '" + mCodecName + "' failure!", e);
-        //        }
+        String mCodecName = config.getVideoConfig().getCodecName();
+        try {
+            if (!TextUtils.isEmpty(mCodecName)) {
+                return MediaCodec.createByCodecName(mCodecName);
+            }
+        } catch (IOException e) {
+            Log.w(TAG, "Create MediaCodec by name '" + mCodecName + "' failure!", e);
+        }
         return MediaCodec.createEncoderByType(mimeType);
     }
 

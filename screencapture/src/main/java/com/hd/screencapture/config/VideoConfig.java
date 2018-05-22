@@ -1,8 +1,13 @@
 package com.hd.screencapture.config;
 
 import android.app.Activity;
+import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
+import android.media.MediaFormat;
 import android.support.annotation.NonNull;
 import android.util.DisplayMetrics;
+
+import com.hd.screencapture.help.Utils;
 
 /**
  * Created by hd on 2018/5/18 .
@@ -20,12 +25,12 @@ public class VideoConfig extends CaptureConfig {
     private int dpi = 440;
 
     /**
-     * video bitrate {800,1200,1600,2000,2500,5000,10000,12000,16000,20000,25000}
+     * video bitrate
      */
-    private int bitrate = 10000;
+    private int bitrate = 12000000;
 
     /**
-     * video frame rate {15,25,30,60,90,120}
+     * video frame rate
      */
     private int frameRate = 60;
 
@@ -34,7 +39,18 @@ public class VideoConfig extends CaptureConfig {
      */
     private int iFrameInterval = 10;
 
-    private String profileLevels ;
+    /**
+     * {@link Utils#findAllVideoCodecName()}
+     * {@link MediaCodec#createByCodecName(String)}
+     */
+    private String codecName;
+
+    /**
+     * {@link Utils#findVideoProfileLevel}
+     * {@link MediaFormat#KEY_PROFILE}
+     * {@link MediaFormat#KEY_LEVEL}
+     */
+    private MediaCodecInfo.CodecProfileLevel level;
 
     public static VideoConfig initDefaultConfig() {
         return new VideoConfig();
@@ -96,5 +112,21 @@ public class VideoConfig extends CaptureConfig {
 
     public void setIFrameInterval(int iFrameInterval) {
         this.iFrameInterval = iFrameInterval;
+    }
+
+    public String getCodecName() {
+        return codecName;
+    }
+
+    public void setCodecName(String codecName) {
+        this.codecName = codecName;
+    }
+
+    public MediaCodecInfo.CodecProfileLevel getLevel() {
+        return level;
+    }
+
+    public void setLevel(MediaCodecInfo.CodecProfileLevel level) {
+        this.level = level;
     }
 }

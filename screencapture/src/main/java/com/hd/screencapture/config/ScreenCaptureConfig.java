@@ -7,6 +7,9 @@ import android.support.annotation.NonNull;
 import com.hd.screencapture.callback.ScreenCaptureCallback;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  * Created by hd on 2018/5/14 .
@@ -42,8 +45,8 @@ public class ScreenCaptureConfig extends CaptureConfig {
      * screen capture file
      */
     private File file = new File(
-            Environment.getExternalStorageDirectory(), //
-            "screen_capture_" + System.currentTimeMillis() + ".mp4");
+            Environment.getExternalStorageDirectory(), "screen_capture_" //
+            + new SimpleDateFormat("yyyyMMdd-HH-mm-ss", Locale.US).format(new Date()) + ".mp4");
 
     /**
      *  not provided voice recording by default

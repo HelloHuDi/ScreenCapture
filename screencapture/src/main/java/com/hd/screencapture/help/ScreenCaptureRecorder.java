@@ -76,9 +76,9 @@ public class ScreenCaptureRecorder extends Thread {
                 observer.reportState(ScreenCaptureState.CAPTURING);
                 mMuxer = new MediaMuxer(config.getFile().getAbsolutePath(), MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
                 mVirtualDisplay = mediaProjection.createVirtualDisplay(TAG + "-display",//
-                                                                       config.getVideoConfig().getWidth(), config.getVideoConfig().getHeight(), config.getVideoConfig().getDpi(), //
-                                                                       DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC,//
-                                                                       videoRecorder.getSurface(), null, null);
+                                                 config.getVideoConfig().getWidth(), config.getVideoConfig().getHeight(), config.getVideoConfig().getDpi(), //
+                                                 DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC,//
+                                                 videoRecorder.getSurface(), null, null);
             } else {
                 throw new RuntimeException("prepare encoder failed");
             }

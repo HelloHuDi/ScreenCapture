@@ -20,9 +20,6 @@ import android.util.Log;
 import com.hd.screencapture.config.ScreenCaptureConfig;
 import com.hd.screencapture.observer.CaptureObserver;
 
-import static android.Manifest.permission.RECORD_AUDIO;
-import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
-
 
 /**
  * Created by hd on 2018/5/14 .
@@ -63,9 +60,15 @@ public class ScreenCaptureFragment extends Fragment {
     public void startCapture() {
         if (observer.isAlive()) {
             if (hasPermissions()) {
-                observer.reportState(ScreenCaptureState.PREPARE);
-                Intent captureIntent = mMediaProjectionManager.createScreenCaptureIntent();
-                startActivityForResult(captureIntent, REQUEST_MEDIA_PROJECTION);
+                if (Utils.checkFile(config.getFile())) {
+                    observer.reportState(ScreenCaptureState.PREPARE);
+                    Intent captureIntent = mMediaProjectionManager.createScreenCaptureIntent();
+                    startActivityForResult(captureIntent, REQUEST_MEDIA_PROJECTION);
+                } else {
+                    if (config.allowLog())
+                        Log.e(TAG, "current video file parent folder not exists !");
+                    observer.notAllowEnterNextStep();
+                }
             } else {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     requestPermission();
@@ -84,6 +87,7 @@ public class ScreenCaptureFragment extends Fragment {
 
     public void stopCapture() {
         cancelRecorder();
+        //notification system refresh video list
         Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE)//
                                          .addCategory(Intent.CATEGORY_DEFAULT)//
                                          .setData(Uri.fromFile(config.getFile()));
@@ -110,7 +114,7 @@ public class ScreenCaptureFragment extends Fragment {
                 startCapture();
             } else {
                 if (config.allowLog())
-                    Log.e(TAG, "No Permission!");
+                    Log.e(TAG, "no Permission!");
                 observer.notAllowEnterNextStep();
             }
         }
@@ -131,7 +135,7 @@ public class ScreenCaptureFragment extends Fragment {
                 }
             } else {
                 if (config.allowLog())
-                    Log.e(TAG, "media projection is null");
+                    Log.e(TAG, "media projection is null,maybe you cancel recorder");
                 observer.notAllowEnterNextStep();
             }
         }
@@ -169,21 +173,17 @@ public class ScreenCaptureFragment extends Fragment {
             return;
         }
         new AlertDialog.Builder(getActivity())//
-                       .setMessage("Using your mic to record audio and your sd card to save video file")//
-                       .setCancelable(false)//
-                       .setPositiveButton(android.R.string.ok, (dialog, which) -> //
-                               requestPermissions(permissions, PERMISSIONS_REQUEST_CODE))//
-                       .setNegativeButton(android.R.string.cancel, (dialog, which) -> //
-                               observer.notAllowEnterNextStep())//
-                       .create()//
-                       .show();
+                                              .setMessage("Using your mic to record audio and your sd card to save video file")//
+                                              .setCancelable(false)//
+                                              .setPositiveButton(android.R.string.ok, (dialog, which) -> //
+                                                      requestPermissions(permissions, PERMISSIONS_REQUEST_CODE))//
+                                              .setNegativeButton(android.R.string.cancel, (dialog, which) -> //
+                                                      observer.notAllowEnterNextStep())//
+                                              .create()//
+                                              .show();
     }
 
     private boolean hasPermissions() {
-        PackageManager pm = appContext.getPackageManager();
-        String packageName = appContext.getPackageName();
-        int granted = (config.hasAudio() ? pm.checkPermission(RECORD_AUDIO, packageName) : //
-                PackageManager.PERMISSION_GRANTED) | pm.checkPermission(WRITE_EXTERNAL_STORAGE, packageName);
-        return granted == PackageManager.PERMISSION_GRANTED;
+        return Utils.isPermissionGranted(appContext, config.hasAudio());
     }
 }

@@ -37,6 +37,9 @@ public class ScreenCapture {
         if (!Utils.isExternalStorageReady()) {
             Log.e(TAG, "current no storage space");
         }
+        if(!Utils.isPermissionGranted(activity,false)){
+            Log.e(TAG, "no permission !!!");
+        }
         return new ScreenCapture(activity);
     }
 
@@ -44,7 +47,7 @@ public class ScreenCapture {
 
     private CaptureObserver observer;
 
-    protected AtomicBoolean capture = new AtomicBoolean(false);
+    private AtomicBoolean capture = new AtomicBoolean(false);
 
     private ScreenCapture(@NonNull AppCompatActivity activity) {
         //add lifecycle observer
@@ -108,6 +111,7 @@ public class ScreenCapture {
 
     public void stopCapture() {
         if (isRunning()) {
+            capture.set(false);
             screenCaptureFragment.stopCapture();
         } else {
             Log.e(TAG, "stop capture always");
