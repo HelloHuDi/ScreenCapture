@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -7,44 +7,57 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <Button
+    <LinearLayout
         android:layout_width="match_parent"
-        android:text="startCapture"
-        android:onClick="startCapture"
-        android:layout_height="58dp"/>
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
-    <Button
-        android:layout_width="match_parent"
-        android:text="stopCapture"
-        android:onClick="stopCapture"
-        android:layout_height="58dp"/>
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="58dp"
+            android:onClick="startCapture"
+            android:text="startCapture"/>
 
-    <TextView
-        android:id="@+id/tvTime"
-        android:layout_width="match_parent"
-        android:gravity="center|left"
-        android:text="capture time ==> 0 "
-        android:layout_height="58dp"/>
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="58dp"
+            android:onClick="stopCapture"
+            android:text="stopCapture"/>
 
-    <TextView
-        android:id="@+id/tvVideoHeaderData"
-        android:layout_width="match_parent"
-        android:gravity="center|left"
-        android:text="video header byte length ==>"
-        android:layout_height="58dp"/>
+        <TextView
+            android:id="@+id/tvState"
+            android:layout_width="match_parent"
+            android:layout_height="58dp"
+            android:gravity="center|left"
+            android:text="capture state ==>  "/>
 
-    <TextView
-        android:id="@+id/tvVideoData"
-        android:layout_width="match_parent"
-        android:gravity="center|left"
-        android:text="video content byte len ==>"
-        android:layout_height="58dp"/>
 
-    <TextView
-        android:id="@+id/tvAudioData"
-        android:layout_width="match_parent"
-        android:gravity="center|left"
-        android:text="audio content byte len ==>"
-        android:layout_height="58dp"/>
+        <TextView
+            android:id="@+id/tvTime"
+            android:layout_width="match_parent"
+            android:layout_height="58dp"
+            android:gravity="center|left"
+            android:text="capture time ==> 0 "/>
 
-</LinearLayout>
+        <TextView
+            android:id="@+id/tvVideoHeaderData"
+            android:layout_width="match_parent"
+            android:layout_height="58dp"
+            android:gravity="center|left"
+            android:text="video header byte length ==>"/>
+
+        <TextView
+            android:id="@+id/tvVideoData"
+            android:layout_width="match_parent"
+            android:layout_height="58dp"
+            android:gravity="center|left"
+            android:text="video content byte len ==>"/>
+
+        <TextView
+            android:id="@+id/tvAudioData"
+            android:layout_width="match_parent"
+            android:layout_height="58dp"
+            android:gravity="center|left"
+            android:text="audio content byte len ==>"/>
+    </LinearLayout>
+</ScrollView>

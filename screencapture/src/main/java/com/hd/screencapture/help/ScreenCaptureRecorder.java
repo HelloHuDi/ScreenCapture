@@ -1,6 +1,5 @@
 package com.hd.screencapture.help;
 
-import android.annotation.TargetApi;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import android.media.MediaCodec;
@@ -10,6 +9,7 @@ import android.media.projection.MediaProjection;
 import android.os.Build;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 
 import com.hd.screencapture.callback.RecorderCallback;
@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Created by hd on 2018/5/14 .
  */
-@TargetApi(Build.VERSION_CODES.LOLLIPOP)
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 public class ScreenCaptureRecorder extends Thread {
 
     private final String TAG = ScreenCaptureRecorder.class.getSimpleName();
@@ -214,8 +214,9 @@ public class ScreenCaptureRecorder extends Thread {
     }
 
     private void startMuxerIfReady() {
-        if (mMuxerStarted || mVideoOutputFormat == null || (audioRecorder != null && mAudioOutputFormat == null)) {
-            return;
+        if (mMuxerStarted || mVideoOutputFormat == null || //
+                (config.hasAudio() && (audioRecorder != null || mAudioOutputFormat == null))) {
+             return;
         }
         mVideoTrackIndex = mMuxer.addTrack(mVideoOutputFormat);
         mAudioTrackIndex = !config.hasAudio() && audioRecorder == null ? INVALID_INDEX : mMuxer.addTrack(mAudioOutputFormat);

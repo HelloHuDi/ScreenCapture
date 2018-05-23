@@ -1,7 +1,6 @@
 package com.hd.screencapture.help;
 
 import android.Manifest;
-import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
@@ -24,7 +23,7 @@ import com.hd.screencapture.observer.CaptureObserver;
 /**
  * Created by hd on 2018/5/14 .
  */
-@TargetApi(Build.VERSION_CODES.LOLLIPOP)
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 public class ScreenCaptureFragment extends Fragment {
 
     private final String TAG = ScreenCaptureFragment.class.getSimpleName();
@@ -53,7 +52,7 @@ public class ScreenCaptureFragment extends Fragment {
         this.observer = observer;
     }
 
-    public void setConfig(@NonNull ScreenCaptureConfig config) {
+    public void addConfig(@NonNull ScreenCaptureConfig config) {
         this.config = config;
     }
 
@@ -92,6 +91,7 @@ public class ScreenCaptureFragment extends Fragment {
                                          .addCategory(Intent.CATEGORY_DEFAULT)//
                                          .setData(Uri.fromFile(config.getFile()));
         appContext.sendBroadcast(intent);
+        observer.reportState(ScreenCaptureState.COMPLETED);
     }
 
     @Override
@@ -141,6 +141,12 @@ public class ScreenCaptureFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onDestroyView() {
+        specialPeriodHandler();
+        super.onDestroyView();
+    }
+
     private void startRecorder() {
         if (observer.isAlive()) {
             observer.reportState(ScreenCaptureState.START);
@@ -157,8 +163,23 @@ public class ScreenCaptureFragment extends Fragment {
     }
 
     private void cancelRecorder() {
-        if (screenCaptureRecorder != null)
+        if(screenCaptureRecorder!=null) {
             screenCaptureRecorder.stopCapture();
+        }
+    }
+
+    private void specialPeriodHandler() {
+        if (config.allowLog() && screenCaptureRecorder!=null)
+            Log.d(TAG, "wait screenCaptureRecorder die:"+screenCaptureRecorder.isAlive());
+        if(screenCaptureRecorder!=null && screenCaptureRecorder.isAlive()) {
+            try {
+                cancelRecorder();
+                screenCaptureRecorder.join(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            screenCaptureRecorder = null;
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -173,14 +194,14 @@ public class ScreenCaptureFragment extends Fragment {
             return;
         }
         new AlertDialog.Builder(getActivity())//
-                                              .setMessage("Using your mic to record audio and your sd card to save video file")//
-                                              .setCancelable(false)//
-                                              .setPositiveButton(android.R.string.ok, (dialog, which) -> //
-                                                      requestPermissions(permissions, PERMISSIONS_REQUEST_CODE))//
-                                              .setNegativeButton(android.R.string.cancel, (dialog, which) -> //
-                                                      observer.notAllowEnterNextStep())//
-                                              .create()//
-                                              .show();
+                       .setMessage("using your mic to record audio and your sd card to save video file")//
+                       .setCancelable(false)//
+                       .setPositiveButton(android.R.string.ok, (dialog, which) -> //
+                               requestPermissions(permissions, PERMISSIONS_REQUEST_CODE))//
+                       .setNegativeButton(android.R.string.cancel, (dialog, which) -> //
+                               observer.notAllowEnterNextStep())//
+                       .create()//
+                       .show();
     }
 
     private boolean hasPermissions() {

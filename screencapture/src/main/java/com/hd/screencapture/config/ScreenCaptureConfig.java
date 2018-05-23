@@ -65,6 +65,11 @@ public class ScreenCaptureConfig extends CaptureConfig {
         return initDefaultConfig(VideoConfig.initDefaultConfig(activity));
     }
 
+    @Override
+    public String toString() {
+        return "ScreenCaptureConfig{" + "allowLog=" + allowLog + ", videoConfig=" + videoConfig + ", audioConfig=" + audioConfig + ", captureCallback=" + captureCallback + ", autoMoveTaskToBack=" + autoMoveTaskToBack + ", file=" + file + '}';
+    }
+
     public boolean allowLog() {
         return allowLog;
     }
@@ -98,7 +103,7 @@ public class ScreenCaptureConfig extends CaptureConfig {
     }
 
     public boolean hasAudio() {
-        return getAudioConfig() == null;
+        return getAudioConfig() != null;
     }
 
     public boolean isAutoMoveTaskToBack() {
@@ -135,7 +140,8 @@ public class ScreenCaptureConfig extends CaptureConfig {
             return this;
         }
 
-        public Builder setAudioConfig(AudioConfig audioConfig) {
+        //not completed
+        private Builder setAudioConfig(AudioConfig audioConfig) {
             captureConfig.setAudioConfig(audioConfig);
             return this;
         }

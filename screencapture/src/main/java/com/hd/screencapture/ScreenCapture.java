@@ -1,10 +1,10 @@
 package com.hd.screencapture;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.os.Build;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Created by hd on 2018/5/14 .
  */
-@TargetApi(Build.VERSION_CODES.LOLLIPOP)
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 public class ScreenCapture {
 
     private static final String TAG = "Screen-Capture";
@@ -50,11 +50,13 @@ public class ScreenCapture {
     private AtomicBoolean capture = new AtomicBoolean(false);
 
     private ScreenCapture(@NonNull AppCompatActivity activity) {
-        //add lifecycle observer
+        capture.set(false);
         observer = new ScreenCaptureObserver(this);
+        //add lifecycle observer
         activity.getLifecycle().addObserver((ScreenCaptureObserver) observer);
         //init the main capture work fragment
         screenCaptureFragment = getScreenCaptureFragment(activity);
+        //add capture callback observer
         screenCaptureFragment.addObserver(observer);
         //init default config
         setConfig(ScreenCaptureConfig.initDefaultConfig(activity));
@@ -78,9 +80,12 @@ public class ScreenCapture {
 
     public ScreenCapture setConfig(@NonNull ScreenCaptureConfig config) {
         if (config.getVideoConfig() == null)
-            throw new RuntimeException("you must set the capture video config before start capture ");
-        screenCaptureFragment.setConfig(config);
-        observer.initConfig(config);
+            throw new RuntimeException("you must set the capture video config if you call this method," +//
+                                       "if you do not call this method, we will provide a default video config ");
+        if (config.getAudioConfig() == null)
+            Log.w(TAG,"note that if you do not set the audio config, your video will have not voice ");
+        screenCaptureFragment.addConfig(config);
+        observer.addConfig(config);
         return this;
     }
 

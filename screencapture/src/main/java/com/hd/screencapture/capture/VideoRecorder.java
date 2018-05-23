@@ -1,11 +1,11 @@
 package com.hd.screencapture.capture;
 
-import android.annotation.TargetApi;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.os.Build;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Surface;
@@ -21,7 +21,7 @@ import java.util.Objects;
 /**
  * Created by hd on 2018/5/20 .
  */
-@TargetApi(Build.VERSION_CODES.LOLLIPOP)
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 public class VideoRecorder extends Recorder {
 
     private final String TAG = "VideoRecorder";

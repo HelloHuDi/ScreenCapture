@@ -22,7 +22,7 @@ public abstract class CaptureObserver {
         alive = true;
     }
 
-    public void initConfig(ScreenCaptureConfig config) {
+    public void addConfig(ScreenCaptureConfig config) {
         this.config = config;
     }
 

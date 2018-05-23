@@ -30,6 +30,11 @@ public class AudioConfig extends CaptureConfig{
      */
     private MediaCodecInfo.CodecProfileLevel level;
 
+    @Override
+    public String toString() {
+        return "AudioConfig{" + "samplingRate=" + samplingRate + ", channelCount=" + channelCount + ", bitrate=" + bitrate + ", codecName='" + codecName + '\'' + ", level=" + level + '}';
+    }
+
     public static AudioConfig initDefaultConfig() {
         return new AudioConfig();
     }

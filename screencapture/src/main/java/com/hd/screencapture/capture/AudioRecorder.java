@@ -39,9 +39,7 @@ public class AudioRecorder extends Recorder {
     public void releaseOutputBuffer(int index) {
     }
 
-
     public ByteBuffer getOutputBuffer(int index) {
-//        return mEncoder.getOutputBuffer(index);
         return null;
     }
 

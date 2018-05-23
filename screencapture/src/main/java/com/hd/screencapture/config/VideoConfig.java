@@ -52,6 +52,11 @@ public class VideoConfig extends CaptureConfig {
      */
     private MediaCodecInfo.CodecProfileLevel level;
 
+    @Override
+    public String toString() {
+        return "VideoConfig{" + "width=" + width + ", height=" + height + ", dpi=" + dpi + ", bitrate=" + bitrate + ", frameRate=" + frameRate + ", iFrameInterval=" + iFrameInterval + ", codecName='" + codecName + '\'' + ", level=" + level + '}';
+    }
+
     public static VideoConfig initDefaultConfig() {
         return new VideoConfig();
     }
