@@ -67,7 +67,9 @@ public class ScreenCaptureConfig extends CaptureConfig {
 
     @Override
     public String toString() {
-        return "ScreenCaptureConfig{" + "allowLog=" + allowLog + ", videoConfig=" + videoConfig + ", audioConfig=" + audioConfig + ", captureCallback=" + captureCallback + ", autoMoveTaskToBack=" + autoMoveTaskToBack + ", file=" + file + '}';
+        return "ScreenCaptureConfig{" + "allowLog=" + allowLog + ", videoConfig=" + videoConfig +//
+                ", audioConfig=" + audioConfig + ", captureCallback=" + captureCallback +//
+                ", autoMoveTaskToBack=" + autoMoveTaskToBack + ", file=" + file + '}';
     }
 
     public boolean allowLog() {

@@ -32,7 +32,8 @@ public class AudioConfig extends CaptureConfig{
 
     @Override
     public String toString() {
-        return "AudioConfig{" + "samplingRate=" + samplingRate + ", channelCount=" + channelCount + ", bitrate=" + bitrate + ", codecName='" + codecName + '\'' + ", level=" + level + '}';
+        return "AudioConfig{" + "samplingRate=" + samplingRate + ", channelCount=" + channelCount +//
+                ", bitrate=" + bitrate + ", codecName='" + codecName + '\'' + ", level=" + level + '}';
     }
 
     public static AudioConfig initDefaultConfig() {

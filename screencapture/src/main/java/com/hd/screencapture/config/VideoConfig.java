@@ -54,7 +54,9 @@ public class VideoConfig extends CaptureConfig {
 
     @Override
     public String toString() {
-        return "VideoConfig{" + "width=" + width + ", height=" + height + ", dpi=" + dpi + ", bitrate=" + bitrate + ", frameRate=" + frameRate + ", iFrameInterval=" + iFrameInterval + ", codecName='" + codecName + '\'' + ", level=" + level + '}';
+        return "VideoConfig{" + "width=" + width + ", height=" + height + ", dpi=" + dpi +//
+                ", bitrate=" + bitrate + ", frameRate=" + frameRate + ", iFrameInterval=" + iFrameInterval +//
+                ", codecName='" + codecName + '\'' + ", level=" + level + '}';
     }
 
     public static VideoConfig initDefaultConfig() {

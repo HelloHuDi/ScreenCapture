@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity implements ScreenCaptureStre
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //LogConfig.log();
+//        LogConfig.log();
         init();
     }
 

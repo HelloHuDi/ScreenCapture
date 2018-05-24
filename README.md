@@ -8,7 +8,7 @@
 
 ## create mp4 with MediaProjection，there is no voice for the time being
 
-## according to ScreenRecorder[1] adaptation,thanks [Yrom Wang](https://github.com/yrom)
+## according to [ScreenRecorder][1] adaptation,thanks [Yrom Wang][2]
 
 ## usage:
 
@@ -28,3 +28,4 @@ ScreenCapture.with(activity).startCapture();
 ```
 
 [1]: https://github.com/yrom/ScreenRecorder
+[2]: https://github.com/yrom
