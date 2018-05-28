@@ -10,7 +10,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.hd.screencapture.callback.ScreenCaptureStreamCallback;
-import com.hd.screencapture.help.ExecutorUtil;
+import com.hd.screencapture.help.LogConfig;
 import com.hd.screencapture.help.ScreenCaptureState;
 
 
@@ -21,15 +21,13 @@ public class MainActivity extends AppCompatActivity implements ScreenCaptureStre
 
     private TextView tvState, tvTime, tvVideoHeaderData, tvVideoData, tvAudioData;
 
-    private ExecutorUtil executorUtil;
-
     private ScreenCapturePresenter screenCapturePresenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-//        LogConfig.log();
+        LogConfig.log();
         init();
     }
 
@@ -39,7 +37,6 @@ public class MainActivity extends AppCompatActivity implements ScreenCaptureStre
         tvVideoHeaderData = findViewById(R.id.tvVideoHeaderData);
         tvVideoData = findViewById(R.id.tvVideoData);
         tvAudioData = findViewById(R.id.tvAudioData);
-        executorUtil = new ExecutorUtil();
         screenCapturePresenter=new ScreenCapturePresenter(this);
     }
 
@@ -54,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements ScreenCaptureStre
     @SuppressLint("SetTextI18n")
     @Override
     public void captureState(ScreenCaptureState state) {
-        executorUtil.mainThread().execute(() ->{
+        runOnUiThread(() ->{
             tvState.setText("capture state ==>" + state);
             Toast.makeText(MainActivity.this, "capture state ==>" + state, Toast.LENGTH_SHORT).show();
         });
@@ -63,28 +60,25 @@ public class MainActivity extends AppCompatActivity implements ScreenCaptureStre
     @SuppressLint("SetTextI18n")
     @Override
     public void captureTime(long time) {
-        executorUtil.mainThread().execute(() -> tvTime.setText("capture time ==>" + DateUtils.formatElapsedTime(time)));
+        runOnUiThread(() -> tvTime.setText("capture time ==>" + DateUtils.formatElapsedTime(time)));
     }
 
     @SuppressLint("SetTextI18n")
     @Override
     public void videoHeaderByte(@NonNull byte[] sps, @NonNull byte[] pps) {
-        executorUtil.mainThread().execute(() -> tvVideoHeaderData.setText("video header byte length ==> sps len: " + sps.length + ",  pps len : " + pps.length));
-        //executorUtil.networkIO().execute();
+        runOnUiThread(() -> tvVideoHeaderData.setText("video header byte length ==> sps len: " + sps.length + ",  pps len : " + pps.length));
     }
 
     @SuppressLint("SetTextI18n")
     @Override
     public void videoContentByte(@NonNull byte[] content) {
-        executorUtil.mainThread().execute(() -> tvVideoData.setText("video content byte len ==> " + content.length));
-        //executorUtil.networkIO().execute();
+        runOnUiThread(() -> tvVideoData.setText("video content byte len ==> " + content.length));
     }
 
     @SuppressLint("SetTextI18n")
     @Override
     public void audioContentByte(@NonNull byte[] content) {
-        executorUtil.mainThread().execute(() -> tvAudioData.setText("audio content byte len ==> " + content.length));
-        //executorUtil.networkIO().execute();
+        runOnUiThread(() -> tvAudioData.setText("audio content byte len ==> " + content.length));
     }
 
 }

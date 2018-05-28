@@ -136,6 +136,7 @@ public class ScreenCaptureFragment extends Fragment {
             } else {
                 if (config.allowLog())
                     Log.e(TAG, "media projection is null,maybe you cancel recorder");
+                observer.reportState(ScreenCaptureState.CANCEL);
                 observer.notAllowEnterNextStep();
             }
         }
