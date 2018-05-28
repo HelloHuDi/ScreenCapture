@@ -24,7 +24,7 @@ import com.hd.screencapture.observer.CaptureObserver;
  * Created by hd on 2018/5/14 .
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-public class ScreenCaptureFragment extends Fragment {
+public final class ScreenCaptureFragment extends Fragment {
 
     private final String TAG = ScreenCaptureFragment.class.getSimpleName();
 

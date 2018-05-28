@@ -10,7 +10,7 @@ import com.hd.screencapture.help.Utils;
 /**
  * Created by hd on 2018/5/18 .
  */
-public class AudioConfig extends CaptureConfig{
+public final class AudioConfig extends CaptureConfig{
 
     private int samplingRate = 44100;
 

@@ -6,44 +6,37 @@ import android.media.MediaFormat;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.Surface;
 
 import com.hd.screencapture.callback.RecorderCallback;
 import com.hd.screencapture.config.ScreenCaptureConfig;
+import com.hd.screencapture.config.VideoConfig;
 import com.hd.screencapture.observer.CaptureObserver;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Objects;
 
 /**
  * Created by hd on 2018/5/20 .
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-public class VideoRecorder extends Recorder {
-
-    private final String TAG = "VideoRecorder";
+public final class VideoRecorder extends Recorder {
 
     private Surface surface;
 
-    private MediaCodec mEncoder;
+    private VideoConfig videoConfig;
 
     public VideoRecorder(@NonNull CaptureObserver observer, @NonNull ScreenCaptureConfig config,//
                          @NonNull RecorderCallback callback) {
-        super(observer, config, callback);
+        super(VIDEO_RECORDER, observer, config, callback);
+        TAG = "VideoRecorder";
+        videoConfig = config.getVideoConfig();
     }
 
     @Override
     public boolean prepare() {
         try {
-            MediaFormat format = createMediaFormat();
-            String mimeType = format.getString(MediaFormat.KEY_MIME);
-            mEncoder = createEncoder(mimeType);
-            mEncoder.setCallback(mCodecCallback);
-            mEncoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
-            surface = mEncoder.createInputSurface();
+            initMediaCodec(createMediaFormat());
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -52,13 +45,8 @@ public class VideoRecorder extends Recorder {
     }
 
     @Override
-    public boolean record() {
-        mEncoder.start();
-        return true;
-    }
-
-    @Override
     public void release() {
+        super.release();
         if (surface != null) {
             surface.release();
             surface = null;
@@ -75,19 +63,20 @@ public class VideoRecorder extends Recorder {
         return surface;
     }
 
-    private MediaFormat createMediaFormat() {
+    @Override
+    MediaFormat createMediaFormat() {
         final String MIME_TYPE = MediaFormat.MIMETYPE_VIDEO_AVC;
-        MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, config.getVideoConfig().getWidth(), config.getVideoConfig().getHeight());
+        MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, videoConfig.getWidth(), videoConfig.getHeight());
         format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
-        format.setInteger(MediaFormat.KEY_BIT_RATE, config.getVideoConfig().getBitrate());
-        format.setInteger(MediaFormat.KEY_FRAME_RATE, config.getVideoConfig().getFrameRate());
-        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, config.getVideoConfig().getIFrameInterval());
-        MediaCodecInfo.CodecProfileLevel codecProfileLevel=config.getVideoConfig().getLevel();
+        format.setInteger(MediaFormat.KEY_BIT_RATE, videoConfig.getBitrate());
+        format.setInteger(MediaFormat.KEY_FRAME_RATE, videoConfig.getFrameRate());
+        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, videoConfig.getIFrameInterval());
+        MediaCodecInfo.CodecProfileLevel codecProfileLevel = videoConfig.getLevel();
         if (codecProfileLevel != null && codecProfileLevel.profile != 0 && codecProfileLevel.level != 0) {
             format.setInteger(MediaFormat.KEY_PROFILE, codecProfileLevel.profile);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 format.setInteger(MediaFormat.KEY_LEVEL, codecProfileLevel.level);
-            }else{
+            } else {
                 format.setInteger("level", codecProfileLevel.level);
             }
         }
@@ -96,16 +85,13 @@ public class VideoRecorder extends Recorder {
         return format;
     }
 
-    private MediaCodec createEncoder(String mimeType) throws IOException {
-        String mCodecName = config.getVideoConfig().getCodecName();
-        try {
-            if (!TextUtils.isEmpty(mCodecName)) {
-                return MediaCodec.createByCodecName(mCodecName);
-            }
-        } catch (IOException e) {
-            Log.w(TAG, "Create MediaCodec by name '" + mCodecName + "' failure!", e);
-        }
-        return MediaCodec.createEncoderByType(mimeType);
+    @Override
+    void initMediaCodec(MediaFormat format) throws IOException {
+        super.initMediaCodec(format);
+        mEncoder = createEncoder(format.getString(MediaFormat.KEY_MIME));
+        mEncoder.setCallback(mCodecCallback);
+        mEncoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+        surface = mEncoder.createInputSurface();
     }
 
     private MediaCodec.Callback mCodecCallback = new MediaCodec.Callback() {
@@ -129,24 +115,4 @@ public class VideoRecorder extends Recorder {
             callback.onOutputFormatChanged(format);
         }
     };
-
-    public final ByteBuffer getOutputBuffer(int index) {
-        return getEncoder().getOutputBuffer(index);
-    }
-
-    public final ByteBuffer getInputBuffer(int index) {
-        return getEncoder().getInputBuffer(index);
-    }
-
-    public final void queueInputBuffer(int index, int offset, int size, long pstTs, int flags) {
-        getEncoder().queueInputBuffer(index, offset, size, pstTs, flags);
-    }
-
-    public final void releaseOutputBuffer(int index) {
-        getEncoder().releaseOutputBuffer(index, false);
-    }
-
-    public final MediaCodec getEncoder() {
-        return Objects.requireNonNull(mEncoder, "doesn't prepare()");
-    }
 }

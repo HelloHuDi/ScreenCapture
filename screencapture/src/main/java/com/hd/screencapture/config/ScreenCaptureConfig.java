@@ -14,7 +14,7 @@ import java.util.Locale;
 /**
  * Created by hd on 2018/5/14 .
  */
-public class ScreenCaptureConfig extends CaptureConfig {
+public final class ScreenCaptureConfig extends CaptureConfig {
 
     /**
      * about logcat
@@ -142,8 +142,7 @@ public class ScreenCaptureConfig extends CaptureConfig {
             return this;
         }
 
-        //not completed
-        private Builder setAudioConfig(AudioConfig audioConfig) {
+        public Builder setAudioConfig(AudioConfig audioConfig) {
             captureConfig.setAudioConfig(audioConfig);
             return this;
         }

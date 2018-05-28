@@ -14,7 +14,7 @@ import com.hd.screencapture.ScreenCapture;
  * Created by hd on 2018/5/14 .
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public class ScreenCaptureObserver extends CaptureObserver implements LifecycleObserver {
+public final class ScreenCaptureObserver extends CaptureObserver implements LifecycleObserver {
 
     public ScreenCaptureObserver(ScreenCapture screenCapture) {
         super(screenCapture);

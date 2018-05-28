@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Created by hd on 2018/5/14 .
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-public class ScreenCaptureRecorder extends Thread {
+public final class ScreenCaptureRecorder extends Thread {
 
     private final String TAG = ScreenCaptureRecorder.class.getSimpleName();
 

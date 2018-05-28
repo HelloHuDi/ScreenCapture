@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Created by hd on 2018/5/14 .
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-public class ScreenCapture {
+public final class ScreenCapture {
 
     private static final String TAG = "Screen-Capture";
 

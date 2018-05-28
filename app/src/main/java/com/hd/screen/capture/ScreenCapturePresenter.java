@@ -7,6 +7,7 @@ import android.widget.Toast;
 
 import com.hd.screencapture.ScreenCapture;
 import com.hd.screencapture.callback.ScreenCaptureStreamCallback;
+import com.hd.screencapture.config.AudioConfig;
 import com.hd.screencapture.config.ScreenCaptureConfig;
 import com.hd.screencapture.config.VideoConfig;
 
@@ -26,13 +27,12 @@ public class ScreenCapturePresenter {
 
     private void initCapture(AppCompatActivity activity) {
         ScreenCaptureConfig captureConfig = new ScreenCaptureConfig.Builder()//
-                                                                   .setAllowLog(BuildConfig.DEBUG)//
-                                                                   .setVideoConfig(VideoConfig.initDefaultConfig(activity))//
-                                                                   //not completed
-                                                                   //.setAudioConfig(AudioConfig.initDefaultConfig())//
-                                                                   .setCaptureCallback((ScreenCaptureStreamCallback) activity)//
-                                                                   .setAutoMoveTaskToBack(true)//
-                                                                   .create();//
+                                                                             .setAllowLog(BuildConfig.DEBUG)//
+                                                                             .setVideoConfig(VideoConfig.initDefaultConfig(activity))//
+                                                                             .setAudioConfig(AudioConfig.initDefaultConfig())//
+                                                                             .setCaptureCallback((ScreenCaptureStreamCallback) activity)//
+                                                                             .setAutoMoveTaskToBack(true)//
+                                                                             .create();//
         screenCapture = ScreenCapture.with(activity).setConfig(captureConfig);
     }
 

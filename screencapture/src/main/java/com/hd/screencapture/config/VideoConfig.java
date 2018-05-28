@@ -12,7 +12,7 @@ import com.hd.screencapture.help.Utils;
 /**
  * Created by hd on 2018/5/18 .
  */
-public class VideoConfig extends CaptureConfig {
+public final class VideoConfig extends CaptureConfig {
 
     /**
      * video width and height
