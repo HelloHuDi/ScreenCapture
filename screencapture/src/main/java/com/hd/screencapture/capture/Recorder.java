@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Created by hd on 2018/5/20 .
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-public abstract class Recorder {
+public abstract class Recorder{
 
     static final int VIDEO_RECORDER = 0;
 
@@ -97,8 +97,16 @@ public abstract class Recorder {
         return getEncoder().getInputBuffer(index);
     }
 
-    public final void queueInputBuffer(int index, int offset, int size, long pstTs, int flags) {
-        getEncoder().queueInputBuffer(index, offset, size, pstTs, flags);
+    public final void queueInputBuffer(int index, int offset, int size, long presentationTimeUs, int flags) {
+        getEncoder().queueInputBuffer(index, offset, size, presentationTimeUs, flags);
+    }
+
+    public final int dequeueInputBuffer(long timeoutUs) {
+      return getEncoder().dequeueInputBuffer(timeoutUs);
+    }
+
+    public final int dequeueOutputBuffer(@NonNull MediaCodec.BufferInfo info, long timeoutUs) {
+      return getEncoder().dequeueOutputBuffer(info,timeoutUs);
     }
 
     public final void releaseOutputBuffer(int index) {

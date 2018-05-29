@@ -6,11 +6,13 @@
 <a href="" target="_blank"><img src="https://img.shields.io/badge/release-v1.0-blue.svg"></img></a>
 </p>
 
-## create mp4 with MediaProjection，there is no voice for the time being
+## Implement screen capture without root on Android 5.0+ by using MediaProjectionManager, VirtualDisplay, AudioRecord, MediaCodec and MediaMuxer APIs
 
-## according to [ScreenRecorder][1] adaptation,thanks [Yrom Wang][2]
+## There is no voice for the time being
 
-## usage:
+## According to [ScreenRecorder][1] adaptation,thanks [Yrom Wang][2]
+
+## Usage:
 
 ### dependencies :
 

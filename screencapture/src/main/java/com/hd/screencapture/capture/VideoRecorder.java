@@ -103,6 +103,7 @@ public final class VideoRecorder extends Recorder {
         @Override
         public void onOutputBufferAvailable(@NonNull MediaCodec codec, int index, @NonNull MediaCodec.BufferInfo info) {
             callback.onOutputBufferAvailable(index, info);
+            Log.d(TAG,"我来测video:"+index);
         }
 
         @Override

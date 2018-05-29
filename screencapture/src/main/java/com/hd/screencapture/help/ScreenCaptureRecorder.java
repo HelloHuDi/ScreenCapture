@@ -215,7 +215,7 @@ public final class ScreenCaptureRecorder extends Thread {
 
     private void startMuxerIfReady() {
         if (mMuxerStarted || mVideoOutputFormat == null || //
-                (config.hasAudio() && (audioRecorder != null || mAudioOutputFormat == null))) {
+                (audioRecorder != null && mAudioOutputFormat == null)) {
              return;
         }
         mVideoTrackIndex = mMuxer.addTrack(mVideoOutputFormat);
