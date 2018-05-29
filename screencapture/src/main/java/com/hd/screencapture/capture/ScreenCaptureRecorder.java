@@ -1,4 +1,4 @@
-package com.hd.screencapture.help;
+package com.hd.screencapture.capture;
 
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
@@ -13,9 +13,8 @@ import android.support.annotation.RequiresApi;
 import android.util.Log;
 
 import com.hd.screencapture.callback.RecorderCallback;
-import com.hd.screencapture.capture.AudioRecorder;
-import com.hd.screencapture.capture.VideoRecorder;
 import com.hd.screencapture.config.ScreenCaptureConfig;
+import com.hd.screencapture.help.ScreenCaptureState;
 import com.hd.screencapture.observer.CaptureObserver;
 
 import java.nio.ByteBuffer;
@@ -49,7 +48,7 @@ public final class ScreenCaptureRecorder extends Thread {
 
     private AudioRecorder audioRecorder;
 
-    ScreenCaptureRecorder(@NonNull MediaProjection mediaProjection, @NonNull ScreenCaptureConfig config) {
+    public ScreenCaptureRecorder(@NonNull MediaProjection mediaProjection, @NonNull ScreenCaptureConfig config) {
         this.mediaProjection = mediaProjection;
         this.config = config;
     }
@@ -64,8 +63,11 @@ public final class ScreenCaptureRecorder extends Thread {
     }
 
     public void stopCapture() {
-        recorder.set(false);
         release();
+        if (!recorder.get()) {
+            signalStop();
+        }
+        recorder.set(false);
     }
 
     @Override
@@ -76,9 +78,9 @@ public final class ScreenCaptureRecorder extends Thread {
                 observer.reportState(ScreenCaptureState.CAPTURING);
                 mMuxer = new MediaMuxer(config.getFile().getAbsolutePath(), MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
                 mVirtualDisplay = mediaProjection.createVirtualDisplay(TAG + "-display",//
-                                                 config.getVideoConfig().getWidth(), config.getVideoConfig().getHeight(), config.getVideoConfig().getDpi(), //
-                                                 DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC,//
-                                                 videoRecorder.getSurface(), null, null);
+                                                  config.getVideoConfig().getWidth(), config.getVideoConfig().getHeight(), config.getVideoConfig().getDpi(), //
+                                                  DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC,//
+                                                  videoRecorder.getSurface(), null, null);
             } else {
                 throw new RuntimeException("prepare encoder failed");
             }
@@ -216,7 +218,7 @@ public final class ScreenCaptureRecorder extends Thread {
     private void startMuxerIfReady() {
         if (mMuxerStarted || mVideoOutputFormat == null || //
                 (audioRecorder != null && mAudioOutputFormat == null)) {
-             return;
+            return;
         }
         mVideoTrackIndex = mMuxer.addTrack(mVideoOutputFormat);
         mAudioTrackIndex = !config.hasAudio() && audioRecorder == null ? INVALID_INDEX : mMuxer.addTrack(mAudioOutputFormat);
@@ -313,11 +315,17 @@ public final class ScreenCaptureRecorder extends Thread {
         if (encodedData != null) {
             encodedData.position(info.offset);
             encodedData.limit(info.offset + info.size);
-            mMuxer.writeSampleData(track, encodedData, info);
-            if (config.allowLog())
-                Log.i(TAG, "Sent " + info.size + " bytes to MediaMuxer on track " + track);
-            reportData(track, info, encodedData);
+            try {
+                mMuxer.writeSampleData(track, encodedData, info);
+                if (config.allowLog())
+                    Log.i(TAG, "Sent " + info.size + " bytes to MediaMuxer on track " + track);
+                reportData(track, info, encodedData);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
+        if (config.allowLog())
+            Log.i(TAG, "write sample data success !!!");
     }
 
     private void reportData(int track, MediaCodec.BufferInfo info, ByteBuffer encodedData) {
@@ -384,7 +392,6 @@ public final class ScreenCaptureRecorder extends Thread {
 
     private void release() {
         stopEncoders();
-        signalStop();
         mVideoOutputFormat = mAudioOutputFormat = null;
         mVideoTrackIndex = mAudioTrackIndex = INVALID_INDEX;
         mMuxerStarted = false;
@@ -426,19 +433,23 @@ public final class ScreenCaptureRecorder extends Thread {
     }
 
     private void signalStop() {
-        MediaCodec.BufferInfo eos = new MediaCodec.BufferInfo();
-        ByteBuffer buffer = ByteBuffer.allocate(0);
-        eos.set(0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
-        if (config.allowLog())
-            Log.i(TAG, "Signal EOS to muxer ");
-        if (mVideoTrackIndex != INVALID_INDEX) {
-            writeSampleData(mVideoTrackIndex, eos, buffer);
+        try {
+            MediaCodec.BufferInfo eos = new MediaCodec.BufferInfo();
+            ByteBuffer buffer = ByteBuffer.allocate(0);
+            eos.set(0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+            if (config.allowLog())
+                Log.i(TAG, "Signal EOS to muxer ");
+            if (mVideoTrackIndex != INVALID_INDEX) {
+                writeSampleData(mVideoTrackIndex, eos, buffer);
+            }
+            if (mAudioTrackIndex != INVALID_INDEX) {
+                writeSampleData(mAudioTrackIndex, eos, buffer);
+            }
+            mVideoTrackIndex = INVALID_INDEX;
+            mAudioTrackIndex = INVALID_INDEX;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        if (mAudioTrackIndex != INVALID_INDEX) {
-            writeSampleData(mAudioTrackIndex, eos, buffer);
-        }
-        mVideoTrackIndex = INVALID_INDEX;
-        mAudioTrackIndex = INVALID_INDEX;
     }
 
 }

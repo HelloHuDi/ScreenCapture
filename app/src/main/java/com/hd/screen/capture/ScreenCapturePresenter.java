@@ -27,12 +27,12 @@ public class ScreenCapturePresenter {
 
     private void initCapture(AppCompatActivity activity) {
         ScreenCaptureConfig captureConfig = new ScreenCaptureConfig.Builder()//
-                                                                             .setAllowLog(BuildConfig.DEBUG)//
-                                                                             .setVideoConfig(VideoConfig.initDefaultConfig(activity))//
-                                                                             .setAudioConfig(AudioConfig.initDefaultConfig())//
-                                                                             .setCaptureCallback((ScreenCaptureStreamCallback) activity)//
-                                                                             .setAutoMoveTaskToBack(true)//
-                                                                             .create();//
+                                                                   .setAllowLog(BuildConfig.DEBUG)//
+                                                                   .setVideoConfig(VideoConfig.initDefaultConfig(activity))//
+                                                                   .setAudioConfig(AudioConfig.initDefaultConfig())//
+                                                                   .setCaptureCallback((ScreenCaptureStreamCallback) activity)//
+                                                                   .setAutoMoveTaskToBack(true)//
+                                                                   .create();//
         screenCapture = ScreenCapture.with(activity).setConfig(captureConfig);
     }
 

@@ -16,6 +16,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 
+import com.hd.screencapture.capture.ScreenCaptureRecorder;
 import com.hd.screencapture.config.ScreenCaptureConfig;
 import com.hd.screencapture.observer.CaptureObserver;
 

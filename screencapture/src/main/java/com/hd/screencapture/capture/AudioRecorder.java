@@ -36,7 +36,7 @@ public final class AudioRecorder extends Recorder {
 
     private ExecutorUtil executorUtil;
 
-    public AudioRecorder(@NonNull CaptureObserver observer, @NonNull ScreenCaptureConfig config,//
+    AudioRecorder(@NonNull CaptureObserver observer, @NonNull ScreenCaptureConfig config,//
                          @NonNull RecorderCallback callback) {
         super(AUDIO_RECORDER, observer, config, callback);
         TAG = "AudioRecorder";
@@ -167,8 +167,8 @@ public final class AudioRecorder extends Recorder {
 
     private void feedInput() {
         int inputBufferIndex = dequeueInputBuffer(0);
-//        if (config.allowLog())
-//            Log.d(TAG, "audio encoder returned input buffer index=" + inputBufferIndex);
+        if (config.allowLog())
+            Log.d(TAG, "audio encoder returned input buffer index=" + inputBufferIndex);
         final boolean eos = audioRecord.getRecordingState() == AudioRecord.RECORDSTATE_STOPPED;
         if (inputBufferIndex >= 0) {
             ByteBuffer inputBuffer = getInputBuffer(inputBufferIndex);
@@ -192,8 +192,8 @@ public final class AudioRecorder extends Recorder {
             queueInputBuffer(inputBufferIndex, offset, size, presentationTimeUs, flags);
             callback.onInputBufferAvailable(inputBufferIndex);
         } else {
-//            if (config.allowLog())
-//                Log.i(TAG, "try later to poll input buffer:"+inputBufferIndex);
+            if (config.allowLog())
+                Log.i(TAG, "try later to poll input buffer:"+inputBufferIndex);
             sleepSomeTime();
             if (!record.get())
                 return;
@@ -274,6 +274,4 @@ public final class AudioRecorder extends Recorder {
             e.printStackTrace();
         }
     }
-
-
 }

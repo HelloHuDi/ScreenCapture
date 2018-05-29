@@ -26,7 +26,7 @@ public final class VideoRecorder extends Recorder {
 
     private VideoConfig videoConfig;
 
-    public VideoRecorder(@NonNull CaptureObserver observer, @NonNull ScreenCaptureConfig config,//
+    VideoRecorder(@NonNull CaptureObserver observer, @NonNull ScreenCaptureConfig config,//
                          @NonNull RecorderCallback callback) {
         super(VIDEO_RECORDER, observer, config, callback);
         TAG = "VideoRecorder";
@@ -103,7 +103,6 @@ public final class VideoRecorder extends Recorder {
         @Override
         public void onOutputBufferAvailable(@NonNull MediaCodec codec, int index, @NonNull MediaCodec.BufferInfo info) {
             callback.onOutputBufferAvailable(index, info);
-            Log.d(TAG,"我来测video:"+index);
         }
 
         @Override
