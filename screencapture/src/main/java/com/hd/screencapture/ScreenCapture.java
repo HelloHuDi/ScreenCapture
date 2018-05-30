@@ -1,5 +1,6 @@
 package com.hd.screencapture;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.os.Build;
@@ -21,6 +22,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by hd on 2018/5/14 .
+ * Note permissions. By default, we will request permission for you
+ * {@link Manifest.permission#WRITE_EXTERNAL_STORAGE},{@link Manifest.permission#RECORD_AUDIO}
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 public final class ScreenCapture {

@@ -10,7 +10,7 @@ import java.util.concurrent.Executors;
 /**
  * Created by hd on 2018/5/21 .
  */
-public class ExecutorUtil {
+public final class ExecutorUtil {
 
     private final Executor diskIO;
 

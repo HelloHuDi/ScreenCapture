@@ -17,7 +17,8 @@ import com.hd.screencapture.help.ScreenCaptureState;
 /**
  * Created by hd on 2018/5/14 .
  */
-public class MainActivity extends AppCompatActivity implements ScreenCaptureStreamCallback {
+public class MainActivity extends AppCompatActivity implements //
+        ScreenCaptureStreamCallback/*,ScreenCaptureCallback*/ {
 
     private TextView tvState, tvTime, tvVideoHeaderData, tvVideoData, tvAudioData;
 
@@ -27,6 +28,7 @@ public class MainActivity extends AppCompatActivity implements ScreenCaptureStre
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        //log default config of the current device
         LogConfig.log();
         init();
     }

@@ -22,7 +22,7 @@ import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 /**
  * Created by hd on 2018/5/14 .
  */
-public class Utils {
+public final class Utils {
 
     public static boolean isExternalStorageReady() {
         return Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState());

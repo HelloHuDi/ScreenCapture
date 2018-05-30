@@ -37,22 +37,21 @@ public final class ScreenCaptureConfig extends CaptureConfig {
     private ScreenCaptureCallback captureCallback;
 
     /**
-     * whether auto move task to back
+     * whether auto move task to back{@link Activity#moveTaskToBack(boolean)}
      */
-    private boolean autoMoveTaskToBack = true;
+    private boolean autoMoveTaskToBack = false;
 
     /**
      * screen capture file
      */
-    private File file = new File(
-            Environment.getExternalStorageDirectory(), "screen_capture_" //
+    private File file = new File(Environment.getExternalStorageDirectory(), "screen_capture_" //
             + new SimpleDateFormat("yyyyMMdd-HH-mm-ss", Locale.US).format(new Date()) + ".mp4");
 
     /**
-     *  not provided voice recording by default
+     * not provided voice recording by default
      */
     private static ScreenCaptureConfig initDefaultConfig(@NonNull VideoConfig videoConfig) {
-        ScreenCaptureConfig config= new ScreenCaptureConfig();
+        ScreenCaptureConfig config = new ScreenCaptureConfig();
         config.setVideoConfig(videoConfig);
         return config;
     }

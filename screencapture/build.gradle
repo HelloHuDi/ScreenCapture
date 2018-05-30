@@ -6,7 +6,7 @@ def siteUrl = 'https://github.com/HelloHuDi/ScreenCapture'
 def gitUrl = 'git@github.com:HelloHuDi/ScreenCapture.git'
 Properties properties = new Properties()
 properties.load(project.rootProject.file('local.properties').newDataInputStream())
-version = "1.0"
+version = "2.0"
 group = "com.hd"
 
 android {
@@ -15,8 +15,8 @@ android {
     defaultConfig {
         minSdkVersion 14
         targetSdkVersion 27
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "2.0"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
