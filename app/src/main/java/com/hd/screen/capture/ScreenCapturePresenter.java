@@ -29,6 +29,7 @@ public class ScreenCapturePresenter {
         ScreenCaptureConfig captureConfig = new ScreenCaptureConfig.Builder()//
                                                                    .setAllowLog(BuildConfig.DEBUG)//
                                                                    .setVideoConfig(VideoConfig.initDefaultConfig(activity))//
+                                                                   //if it is not set, then the voice will not be supported
                                                                    .setAudioConfig(AudioConfig.initDefaultConfig())//
                                                                    .setCaptureCallback((ScreenCaptureStreamCallback) activity)//
                                                                    .setAutoMoveTaskToBack(true)//
@@ -36,8 +37,12 @@ public class ScreenCapturePresenter {
         screenCapture = ScreenCapture.with(activity).setConfig(captureConfig);
     }
 
+    public boolean isCapturing(){
+       return screenCapture.isRunning();
+    }
+
     public void startCapture() {
-        if (!screenCapture.isRunning()) {
+        if (!isCapturing()) {
             screenCapture.startCapture();
         } else {
             Toast.makeText(context, "current is capturing state", Toast.LENGTH_SHORT).show();
@@ -45,7 +50,7 @@ public class ScreenCapturePresenter {
     }
 
     public void stopCapture() {
-        if (screenCapture.isRunning()) {
+        if (isCapturing()) {
             screenCapture.stopCapture();
         } else {
             Toast.makeText(context, "current is stopped state", Toast.LENGTH_SHORT).show();

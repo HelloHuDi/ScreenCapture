@@ -84,7 +84,7 @@ public final class ScreenCapture {
     public ScreenCapture setConfig(@NonNull ScreenCaptureConfig config) {
         if (config.getVideoConfig() == null)
             throw new RuntimeException("you must set the capture video config if you call this method," +//
-                                       "if you do not call this method, we will provide a default video config ");
+                                               "if you do not call this method, we will provide a default video config ");
         if (config.getAudioConfig() == null)
             Log.w(TAG,"note that if you do not set the audio config, your video will have not voice ");
         screenCaptureFragment.addConfig(config);
@@ -121,6 +121,7 @@ public final class ScreenCapture {
         if (isRunning()) {
             capture.set(false);
             screenCaptureFragment.stopCapture();
+            observer.reset();
         } else {
             Log.e(TAG, "stop capture always");
         }

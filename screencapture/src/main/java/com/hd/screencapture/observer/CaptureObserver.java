@@ -40,6 +40,10 @@ public abstract class CaptureObserver {
         this.config = config;
     }
 
+    public void reset() {
+        continueReportState=true;
+    }
+
     public boolean isAlive() {
         return alive;
     }
