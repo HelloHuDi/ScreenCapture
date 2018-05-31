@@ -49,8 +49,8 @@ public final class LogConfig {
             Range<Integer> videoBitrateRange = capabilities.getVideoCapabilities().getBitrateRange();
             Range<Integer> videoFrameRatesRange = capabilities.getVideoCapabilities().getSupportedFrameRates();
 
-            Log.d(TAG, "\nvideoCodecName : " + codecName + "=======" + videoBitrateRange//
-                    + "\n========" + videoFrameRatesRange);
+            Log.d(TAG, "\nvideoCodecName : " + codecName + "===videoBitrateRange====" + videoBitrateRange//
+                    + "\n====videoFrameRatesRange====" + videoFrameRatesRange);
 
             int[] videoColorFormats = capabilities.colorFormats;
             Log.d(TAG, "\nvideoCodecName : " + codecName + "==videoColorFormats:" + Arrays.toString(videoColorFormats));
@@ -60,7 +60,6 @@ public final class LogConfig {
                         + "\n=======" + Utils.toColorFormat(Utils.toHumanReadable(colorFormat)));
             }
         }
-
 
         for (String codecName : audioCodecName) {
             MediaCodecInfo.CodecProfileLevel[] levels = Utils.findAudioProfileLevel(codecName);
@@ -72,7 +71,6 @@ public final class LogConfig {
             Range<Integer> audioBitrateRange = capabilities.getAudioCapabilities().getBitrateRange();
             Range<Integer>[] audioSampleRateRanges = capabilities.getAudioCapabilities().getSupportedSampleRateRanges();
             int[] audioSampleRates = capabilities.getAudioCapabilities().getSupportedSampleRates();
-
 
             int lower = Math.max(audioBitrateRange.getLower() / 1000, 80);
             int upper = audioBitrateRange.getUpper() / 1000;

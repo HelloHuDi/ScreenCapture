@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="Settings">
+    <PreferenceCategory
+        android:title="start screen record">
+        <Preference
+            android:key="capture"
+            android:title="START CAPTURE"/>
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="use default config">
+        <CheckBoxPreference
+            android:key="defaultVideoConfig"
+            android:title="default video config"/>
+        <CheckBoxPreference
+            android:key="defaultAudioConfig"
+            android:title="default audio config"/>
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="need voice ?">
+        <CheckBoxPreference
+            android:key="has_audio"
+            android:title="voice"/>
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="video encode config(H.264 AVC)">
+        <ListPreference
+            android:dialogTitle="please choose one"
+            android:key="video_encoder"
+            android:title="video Encoder"/>
+        <ListPreference
+            android:dialogTitle="please choose one"
+            android:key="video_bitrate"
+            android:title="bitrate"/>
+        <ListPreference
+            android:dialogTitle="please choose one"
+            android:key="fps"
+            android:title="fps"/>
+        <ListPreference
+            android:dialogTitle="please choose one"
+            android:key="iFrame_interval"
+            android:title="I-Frame Interval"/>
+        <ListPreference
+            android:dialogTitle="please choose one"
+            android:key="avc_profile"
+            android:title="AVCProfile"/>
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:key="audio_config"
+        android:title="audio encode config(H.264 AAC)">
+        <ListPreference
+            android:dialogTitle="please choose one"
+            android:key="audio_encoder"
+            android:title="audio Encoder"/>
+        <ListPreference
+            android:dialogTitle="please choose one"
+            android:key="channels"
+            android:title="channels"/>
+        <ListPreference
+            android:dialogTitle="please choose one"
+            android:key="sample_rate"
+            android:title="sample rate"/>
+        <ListPreference
+            android:dialogTitle="please choose one"
+            android:key="audio_bitrate"
+            android:title="bitrate"/>
+        <ListPreference
+            android:dialogTitle="please choose one"
+            android:key="aac_profile"
+            android:title="AACProfile"/>
+    </PreferenceCategory>
+</PreferenceScreen>

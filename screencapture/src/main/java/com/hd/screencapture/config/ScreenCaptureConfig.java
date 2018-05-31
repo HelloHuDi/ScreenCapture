@@ -44,8 +44,7 @@ public final class ScreenCaptureConfig extends CaptureConfig {
     /**
      * screen capture file
      */
-    private File file = new File(Environment.getExternalStorageDirectory(), "screen_capture_" //
-            + new SimpleDateFormat("yyyyMMdd-HH-mm-ss", Locale.US).format(new Date()) + ".mp4");
+    private File file;
 
     /**
      * not provided voice recording by default
@@ -116,7 +115,8 @@ public final class ScreenCaptureConfig extends CaptureConfig {
     }
 
     public File getFile() {
-        return file;
+        return file == null ? new File(Environment.getExternalStorageDirectory(), "screen_capture_" //
+                + new SimpleDateFormat("yyyyMMdd-HH-mm-ss", Locale.US).format(new Date()) + ".mp4") : file;
     }
 
     public void setFile(File file) {

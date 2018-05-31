@@ -1,3 +1,43 @@
 <resources>
     <string name="app_name">ScreenCapture</string>
+    <string name="draw_open">draw_open</string>
+    <string name="draw_close">draw_close</string>
+    <!-- audio channel counts-->
+    <string-array name="audio_channels">
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+    <!-- video bitrate (kbps) -->
+    <string-array name="video_bitrates">
+        <item>9000</item>
+        <item>10000</item>
+        <item>50000</item>
+        <item>80000</item>
+        <item>120000</item>
+        <item>160000</item>
+        <item>200000</item>
+        <item>250000</item>
+        <item>500000</item>
+        <item>1000000</item>
+        <item>1200000</item>
+        <item>1600000</item>
+        <item>2000000</item>
+        <item>2500000</item>
+        <item>12000000</item>
+    </string-array>
+    <string-array name="video_framerates">
+        <item>15</item>
+        <item>25</item>
+        <item>30</item>
+        <item>60</item>
+        <item>90</item>
+        <item>120</item>
+    </string-array>
+    <string-array name="iframeintervals">
+        <item>1</item>
+        <item>5</item>
+        <item>10</item>
+        <item>20</item>
+        <item>30</item>
+    </string-array>
 </resources>

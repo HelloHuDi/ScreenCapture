@@ -81,10 +81,13 @@ public abstract class Recorder{
                 : config.getAudioConfig().getCodecName();
         try {
             if (!TextUtils.isEmpty(mCodecName)) {
+                if(config.allowLog()){
+                    Log.d(TAG, "Create MediaCodec by name '" + mCodecName);
+                }
                 return MediaCodec.createByCodecName(mCodecName);
             }
         } catch (IOException e) {
-            Log.w(TAG, "Create MediaCodec by name '" + mCodecName + "' failure!", e);
+            Log.e(TAG, "Create MediaCodec failure by name '" + mCodecName , e);
         }
         return MediaCodec.createEncoderByType(mimeType);
     }

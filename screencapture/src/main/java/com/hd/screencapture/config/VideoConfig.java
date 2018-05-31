@@ -59,18 +59,22 @@ public final class VideoConfig extends CaptureConfig {
                 ", codecName='" + codecName + '\'' + ", level=" + level + '}';
     }
 
+    public VideoConfig() { }
+
+    public VideoConfig(@NonNull Activity activity) {
+       DisplayMetrics metrics = new DisplayMetrics();
+       activity.getWindowManager().getDefaultDisplay().getMetrics(metrics);
+       setDpi(metrics.densityDpi);
+       setWidth(metrics.widthPixels);
+       setHeight(metrics.heightPixels);
+    }
+
     public static VideoConfig initDefaultConfig() {
         return new VideoConfig();
     }
 
     public static VideoConfig initDefaultConfig(@NonNull Activity activity) {
-        DisplayMetrics metrics = new DisplayMetrics();
-        activity.getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        VideoConfig videoConfig = new VideoConfig();
-        videoConfig.setDpi(metrics.densityDpi);
-        videoConfig.setWidth(metrics.widthPixels);
-        videoConfig.setHeight(metrics.heightPixels);
-        return videoConfig;
+        return new VideoConfig(activity);
     }
 
     public int getWidth() {
