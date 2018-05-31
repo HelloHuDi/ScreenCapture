@@ -115,8 +115,10 @@ public final class ScreenCaptureConfig extends CaptureConfig {
     }
 
     public File getFile() {
-        return file == null ? new File(Environment.getExternalStorageDirectory(), "screen_capture_" //
-                + new SimpleDateFormat("yyyyMMdd-HH-mm-ss", Locale.US).format(new Date()) + ".mp4") : file;
+        if(file==null)
+            file=new File(Environment.getExternalStorageDirectory(), "screen_capture_" //
+                    + new SimpleDateFormat("yyyyMMdd-HH-mm-ss", Locale.US).format(new Date()) + ".mp4");
+        return file;
     }
 
     public void setFile(File file) {
