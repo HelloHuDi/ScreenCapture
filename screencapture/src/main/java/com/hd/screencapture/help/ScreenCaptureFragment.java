@@ -1,6 +1,7 @@
 package com.hd.screencapture.help;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
@@ -8,7 +9,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -16,7 +16,6 @@ import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 
-import com.hd.screencapture.capture.ScreenCaptureRecorder;
 import com.hd.screencapture.config.ScreenCaptureConfig;
 import com.hd.screencapture.observer.CaptureObserver;
 
@@ -33,7 +32,7 @@ public final class ScreenCaptureFragment extends Fragment {
 
     private final int PERMISSIONS_REQUEST_CODE = 442;
 
-    private static Context appContext;
+    private Context appContext;
 
     private CaptureObserver observer;
 
@@ -43,13 +42,24 @@ public final class ScreenCaptureFragment extends Fragment {
 
     private MediaProjectionManager mMediaProjectionManager;
 
-    private MediaProjection mediaProjection;
-
-    private ScreenCaptureRecorder screenCaptureRecorder;
-
     private ScreenCaptureConfig config;
 
-    public void addObserver(CaptureObserver observer) {
+    private CapturePrepareCallback callback;
+
+    public interface CapturePrepareCallback {
+
+        void startRecord(Activity activity, @NonNull MediaProjection mediaProjection);
+
+        void cancelRecord();
+
+        void specialPeriodHandler();
+    }
+
+    public void addCallback(@NonNull CapturePrepareCallback callback) {
+        this.callback = callback;
+    }
+
+    public void addObserver(@NonNull CaptureObserver observer) {
         this.observer = observer;
     }
 
@@ -85,16 +95,6 @@ public final class ScreenCaptureFragment extends Fragment {
         }
     }
 
-    public void stopCapture() {
-        cancelRecorder();
-        //notification system refresh video list
-        Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE)//
-                                         .addCategory(Intent.CATEGORY_DEFAULT)//
-                                         .setData(Uri.fromFile(config.getFile()));
-        appContext.sendBroadcast(intent);
-        observer.reportState(ScreenCaptureState.COMPLETED);
-    }
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -125,10 +125,10 @@ public final class ScreenCaptureFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_MEDIA_PROJECTION) {
-            mediaProjection = mMediaProjectionManager.getMediaProjection(resultCode, data);
+            MediaProjection mediaProjection = mMediaProjectionManager.getMediaProjection(resultCode, data);
             if (mediaProjection != null) {
-                if (hasPermissions()) {
-                    startRecorder();
+                if (hasPermissions() && observer.isAlive()) {
+                    callback.startRecord(getActivity(), mediaProjection);
                 } else {
                     if (config.allowLog())
                         Log.e(TAG, "No Permission!");
@@ -145,43 +145,9 @@ public final class ScreenCaptureFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
-        specialPeriodHandler();
+        if (config.isRelevanceLifecycle())
+            callback.specialPeriodHandler();
         super.onDestroyView();
-    }
-
-    private void startRecorder() {
-        if (observer.isAlive()) {
-            observer.reportState(ScreenCaptureState.START);
-            screenCaptureRecorder = new ScreenCaptureRecorder(mediaProjection, config);
-            screenCaptureRecorder.addObserver(observer);
-            screenCaptureRecorder.startCapture();
-            if (config.isAutoMoveTaskToBack())
-                getActivity().moveTaskToBack(true);
-        } else {
-            if (config.allowLog())
-                Log.e(TAG, "start recorder failed ,current activity is not alive state !!!");
-            observer.notAllowEnterNextStep();
-        }
-    }
-
-    private void cancelRecorder() {
-        if(screenCaptureRecorder!=null) {
-            screenCaptureRecorder.stopCapture();
-        }
-    }
-
-    private void specialPeriodHandler() {
-        if (config.allowLog() && screenCaptureRecorder!=null)
-            Log.d(TAG, "wait screenCaptureRecorder die:"+screenCaptureRecorder.isAlive());
-        if(screenCaptureRecorder!=null && screenCaptureRecorder.isAlive()) {
-            try {
-                cancelRecorder();
-                screenCaptureRecorder.join(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            screenCaptureRecorder = null;
-        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -196,14 +162,14 @@ public final class ScreenCaptureFragment extends Fragment {
             return;
         }
         new AlertDialog.Builder(getActivity())//
-                       .setMessage("using your mic to record audio and your sd card to save video file")//
-                       .setCancelable(false)//
-                       .setPositiveButton(android.R.string.ok, (dialog, which) -> //
-                               requestPermissions(permissions, PERMISSIONS_REQUEST_CODE))//
-                       .setNegativeButton(android.R.string.cancel, (dialog, which) -> //
-                               observer.notAllowEnterNextStep())//
-                       .create()//
-                       .show();
+                                              .setMessage("using your mic to record audio and your sd card to save video file")//
+                                              .setCancelable(false)//
+                                              .setPositiveButton(android.R.string.ok, (dialog, which) -> //
+                                                      requestPermissions(permissions, PERMISSIONS_REQUEST_CODE))//
+                                              .setNegativeButton(android.R.string.cancel, (dialog, which) -> //
+                                                      observer.notAllowEnterNextStep())//
+                                              .create()//
+                                              .show();
     }
 
     private boolean hasPermissions() {

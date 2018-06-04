@@ -22,6 +22,12 @@ public final class ScreenCaptureConfig extends CaptureConfig {
     private boolean allowLog;
 
     /**
+     * whether the associated lifecycle is needed,
+     * automatically stops according to activity lifecycle{@link Activity#onDestroy()}
+     */
+    private boolean relevanceLifecycle = true;
+
+    /**
      * about video config
      */
     private VideoConfig videoConfig;
@@ -78,6 +84,14 @@ public final class ScreenCaptureConfig extends CaptureConfig {
         this.allowLog = allowLog;
     }
 
+    public boolean isRelevanceLifecycle() {
+        return relevanceLifecycle;
+    }
+
+    public void setRelevanceLifecycle(boolean relevanceLifecycle) {
+        this.relevanceLifecycle = relevanceLifecycle;
+    }
+
     public VideoConfig getVideoConfig() {
         return videoConfig;
     }
@@ -115,8 +129,8 @@ public final class ScreenCaptureConfig extends CaptureConfig {
     }
 
     public File getFile() {
-        if(file==null)
-            file=new File(Environment.getExternalStorageDirectory(), "screen_capture_" //
+        if (file == null)
+            file = new File(Environment.getExternalStorageDirectory(), "screen_capture_" //
                     + new SimpleDateFormat("yyyyMMdd-HH-mm-ss", Locale.US).format(new Date()) + ".mp4");
         return file;
     }
@@ -131,6 +145,11 @@ public final class ScreenCaptureConfig extends CaptureConfig {
 
         public Builder() {
             this.captureConfig = new ScreenCaptureConfig();
+        }
+
+        public Builder setRelevanceLifecycle(boolean relevanceLifecycle) {
+            captureConfig.setRelevanceLifecycle(relevanceLifecycle);
+            return this;
         }
 
         public Builder setAllowLog(boolean allowLog) {

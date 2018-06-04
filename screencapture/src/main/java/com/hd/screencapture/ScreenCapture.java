@@ -11,6 +11,7 @@ import android.util.Log;
 
 import com.hd.screencapture.config.ScreenCaptureConfig;
 import com.hd.screencapture.help.ScreenCaptureFragment;
+import com.hd.screencapture.help.ScreenCaptureHelper;
 import com.hd.screencapture.help.Utils;
 import com.hd.screencapture.observer.CaptureObserver;
 import com.hd.screencapture.observer.ScreenCaptureObserver;
@@ -40,27 +41,27 @@ public final class ScreenCapture {
         if (!Utils.isExternalStorageReady()) {
             Log.e(TAG, "current no storage space");
         }
-        if(!Utils.isPermissionGranted(activity,false)){
+        if (!Utils.isPermissionGranted(activity, false)) {
             Log.e(TAG, "no permission !!!");
         }
         return new ScreenCapture(activity);
     }
 
-    private ScreenCaptureFragment screenCaptureFragment;
-
-    private CaptureObserver observer;
+    private ScreenCaptureHelper screenCaptureHelper;
 
     private AtomicBoolean capture = new AtomicBoolean(false);
 
     private ScreenCapture(@NonNull AppCompatActivity activity) {
         capture.set(false);
-        observer = new ScreenCaptureObserver(this);
+        CaptureObserver observer = new ScreenCaptureObserver(this);
         //add lifecycle observer
         activity.getLifecycle().addObserver((ScreenCaptureObserver) observer);
         //init the main capture work fragment
-        screenCaptureFragment = getScreenCaptureFragment(activity);
+        ScreenCaptureFragment screenCaptureFragment = getScreenCaptureFragment(activity);
         //add capture callback observer
         screenCaptureFragment.addObserver(observer);
+        //init capture helper
+        screenCaptureHelper = new ScreenCaptureHelper(activity.getApplicationContext(), observer, screenCaptureFragment);
         //init default config
         setConfig(ScreenCaptureConfig.initDefaultConfig(activity));
     }
@@ -86,13 +87,12 @@ public final class ScreenCapture {
             throw new RuntimeException("you must set the capture video config if you call this method," +//
                                                "if you do not call this method, we will provide a default video config ");
         if (config.getAudioConfig() == null)
-            Log.w(TAG,"note that if you do not set the audio config, your video will have not voice ");
-        screenCaptureFragment.addConfig(config);
-        observer.addConfig(config);
+            Log.w(TAG, "note that if you do not set the audio config, your video will have not voice ");
+        screenCaptureHelper.addConfig(config);
         return this;
     }
 
-    public boolean isRunning(){
+    public boolean isRunning() {
         return capture.get();
     }
 
@@ -103,7 +103,7 @@ public final class ScreenCapture {
     public void startCapture(long duration) {
         if (!isRunning()) {
             capture.set(true);
-            screenCaptureFragment.startCapture();
+            screenCaptureHelper.startCapture();
             if (duration > 0) {
                 new Timer().schedule(new TimerTask() {
                     @Override
@@ -120,8 +120,9 @@ public final class ScreenCapture {
     public void stopCapture() {
         if (isRunning()) {
             capture.set(false);
-            screenCaptureFragment.stopCapture();
-            observer.reset();
+            screenCaptureHelper.stopCapture();
+            System.gc();
+            System.runFinalization();
         } else {
             Log.e(TAG, "stop capture always");
         }

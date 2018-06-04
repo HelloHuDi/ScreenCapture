@@ -29,7 +29,9 @@ public final class ScreenCaptureObserver extends CaptureObserver implements Life
     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     private void onDestroy() {
         Log.d(TAG, "onDestroy");
-        alive = false;
-        stopCapture();
+        if (config.isRelevanceLifecycle()) {
+            alive = false;
+            stopCapture();
+        }
     }
 }

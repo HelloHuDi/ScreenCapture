@@ -20,9 +20,9 @@ public abstract class CaptureObserver {
 
     volatile boolean alive;
 
-    private ScreenCapture screenCapture;
+    ScreenCaptureConfig config;
 
-    private ScreenCaptureConfig config;
+    private ScreenCapture screenCapture;
 
     private boolean continueReportState = true;
 
