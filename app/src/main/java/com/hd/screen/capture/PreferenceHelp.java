@@ -28,15 +28,15 @@ public final class PreferenceHelp {
     }
 
     public boolean useDefaultAudioConfig(){
-        return sp.getBoolean("defaultAudioConfig",false);
+        return sp.getBoolean("defaultAudioConfig",true);
     }
 
     public boolean useDefaultVideoConfig(){
-        return sp.getBoolean("defaultVideoConfig",false);
+        return sp.getBoolean("defaultVideoConfig",true);
     }
 
     public boolean hasAudio(){
-        return sp.getBoolean(HAS_AUDIO,false);
+        return sp.getBoolean(HAS_AUDIO,true);
     }
 
     public String getVideoEncoder(){

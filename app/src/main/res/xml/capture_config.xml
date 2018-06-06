@@ -12,15 +12,18 @@
         android:title="use default config">
         <CheckBoxPreference
             android:key="defaultVideoConfig"
+            android:defaultValue="true"
             android:title="default video config"/>
         <CheckBoxPreference
             android:key="defaultAudioConfig"
+            android:defaultValue="true"
             android:title="default audio config"/>
     </PreferenceCategory>
     <PreferenceCategory
         android:title="need voice ?">
         <CheckBoxPreference
             android:key="has_audio"
+            android:defaultValue="true"
             android:title="voice"/>
     </PreferenceCategory>
     <PreferenceCategory
