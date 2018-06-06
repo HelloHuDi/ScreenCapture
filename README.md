@@ -10,6 +10,8 @@
 
 ## According to [ScreenRecorder][1] adaptation,thanks [Yrom Wang][2]
 
+## [screen record tool][3]
+
 ## Usage:
 
 ### dependencies :
@@ -69,3 +71,4 @@ screenCapture.stopCapture();
 
 [1]: https://github.com/yrom/ScreenRecorder
 [2]: https://github.com/yrom
+[3]: https://github.com/HelloHuDi/ScreenRecordTool
