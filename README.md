@@ -12,6 +12,10 @@
 
 ## [screen record tool][3]
 
+## screenshot
+
+<img src="art/screen.gif" width="300px" height="500px"/>
+
 ## Usage:
 
 ### dependencies :
@@ -34,12 +38,15 @@ ScreenCapture.with(activity).startCapture();
 
 ```
 ScreenCaptureConfig captureConfig = new ScreenCaptureConfig.Builder()
+                                                           .setFile("your file")//
                                                            .setAllowLog(BuildConfig.DEBUG)
                                                            //init default video config
                                                            .setVideoConfig(VideoConfig.initDefaultConfig(activity))
                                                            //if it is not set, then the voice will not be supported  
                                                            .setAudioConfig(AudioConfig.initDefaultConfig())
                                                            .setCaptureCallback((ScreenCaptureStreamCallback) activity)
+                                                           //relevance the activity lifecycle ,if false not auto stop
+                                                           .setRelevanceLifecycle(true)
                                                            //default false
                                                            .setAutoMoveTaskToBack(true)
                                                            .create();

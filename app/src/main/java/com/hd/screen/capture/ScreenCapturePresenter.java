@@ -72,9 +72,13 @@ public class ScreenCapturePresenter {
         }
         captureConfig = new ScreenCaptureConfig.Builder()//
                                                          .setAllowLog(BuildConfig.DEBUG)//
-                                                         .setFile(setSelfFile()).setVideoConfig(videoConfig)//
+                                                         //set your file
+                                                         .setFile(setSelfFile())//
+                                                         .setVideoConfig(videoConfig)//
                                                          //if it is not set, then the voice will not be supported
                                                          .setAudioConfig(audioConfig)//
+                                                         //relevance the activity lifecycle ,if false not auto stop
+                                                         .setRelevanceLifecycle(true)
                                                          .setCaptureCallback((ScreenCaptureStreamCallback) activity)//
                                                          .setAutoMoveTaskToBack(true)//
                                                          .create();//
