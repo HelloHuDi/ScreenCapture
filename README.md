@@ -10,7 +10,7 @@
 
 ## According to [ScreenRecorder][1] adaptation,thanks [Yrom Wang][2]
 
-## [screen record tool][3]
+## [provide screen record tool , and the MP4 files that support the recording are converted to GIF][3]
 
 ## screenshot
 
