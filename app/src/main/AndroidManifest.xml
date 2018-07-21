@@ -23,6 +23,9 @@
         </activity>
         <activity android:name=".CaptureConfigActivity">
         </activity>
+        <activity android:name=".service.ServiceCaptureActivity"/>
+
+        <service android:name=".service.ScreenCaptureService"/>
     </application>
 
 </manifest>
